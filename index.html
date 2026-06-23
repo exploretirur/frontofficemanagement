@@ -299,10 +299,8 @@ tr:hover td { background: #f8fafd; }
       </div>
       <button class="btn-login" onclick="doLogin()">Sign In</button>
       <div class="login-hint">
-        Default credentials:<br>
-        <strong>Admin:</strong> admin / admin123 &nbsp;|&nbsp;
-        <strong>Office:</strong> office / office123<br>
-        Teacher accounts are created by the Admin in User Management.
+        First time? Default admin: <strong>admin</strong> / <strong>admin123</strong><br>
+        Staff accounts are managed by the Admin and synced across all devices via Google Sheets.
       </div>
     </div>
   </div>
@@ -371,6 +369,7 @@ tr:hover td { background: #f8fafd; }
   <div class="topbar no-print">
     <h2 id="page-title">Dashboard</h2>
     <div class="topbar-right">
+      <span id="sync-badge" style="font-size:12px;font-weight:500;min-width:80px;text-align:right;transition:color 0.3s;"></span>
       <span style="font-size:13px;color:var(--muted);" id="current-date"></span>
       <span id="topbar-role-badge" class="role-badge admin">Admin</span>
       <span id="topbar-uname" style="font-size:13px;font-weight:500;">—</span>
@@ -442,7 +441,7 @@ tr:hover td { background: #f8fafd; }
       </div>
       <div class="action-bar" id="adm-actions">
         <button class="btn btn-outline" onclick="clearAdmissionForm()">Clear</button>
-        <button class="btn btn-teal" onclick="submitAdmission()" id="adm-submit-btn"><span id="adm-btn-text">💾 Save to Google Sheets</span></button>
+        <button class="btn btn-teal" onclick="submitAdmission()" id="adm-submit-btn"><span id="adm-btn-text">💾 Save Student</span></button>
       </div>
     </div>
 
@@ -652,10 +651,16 @@ tr:hover td { background: #f8fafd; }
     <!-- ===== USER MANAGEMENT (Admin only) ===== -->
     <div id="page-users" class="page">
       <div id="users-alert"></div>
+      <div class="alert alert-info" style="margin-bottom:16px;font-size:13px;">
+        🌐 <strong>Multi-device access:</strong> User accounts are synced to Google Sheets automatically. Staff on any device can log in once you save a Sheets URL in Configuration and add users here.
+      </div>
       <div class="card">
         <div class="card-header">
           <div class="card-title"><span class="icon">👥</span> System Users</div>
-          <button class="btn btn-teal" onclick="openAddUserModal()" style="padding:7px 16px;font-size:13px;">+ Add User</button>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-outline" onclick="syncUsersFromSheets()" style="padding:7px 16px;font-size:13px;">⬇️ Sync from Sheets</button>
+            <button class="btn btn-teal" onclick="openAddUserModal()" style="padding:7px 16px;font-size:13px;">+ Add User</button>
+          </div>
         </div>
         <div id="users-list"></div>
       </div>
@@ -663,86 +668,167 @@ tr:hover td { background: #f8fafd; }
 
     <!-- ===== SETTINGS ===== -->
     <div id="page-settings" class="page">
+
       <div class="card">
-        <div class="card-header"><div class="card-title"><span class="icon">🔗</span> Google Sheets Integration</div></div>
-        <div class="alert alert-info">ℹ️ Deploy a Google Apps Script as a Web App and paste the URL below.</div>
-        <div class="form-group" style="max-width:600px;">
-          <label>Web App URL <span class="required">*</span></label>
-          <input id="gs-url" type="url" placeholder="https://script.google.com/macros/s/.../exec">
+        <div class="card-header"><div class="card-title"><span class="icon">🔗</span> Google Sheets Connection</div></div>
+        <div id="conn-status-bar" style="margin-bottom:16px;display:none;"></div>
+        <div class="form-group" style="max-width:620px;">
+          <label>Apps Script Web App URL <span class="required">*</span></label>
+          <input id="gs-url" type="url" placeholder="https://script.google.com/macros/s/…/exec" style="font-size:13px;">
+          <div style="font-size:12px;color:var(--muted);margin-top:5px;">Paste the URL you get after deploying the Apps Script below. Staff never need to touch this — admin sets it once.</div>
         </div>
-        <div class="form-group" style="max-width:600px;margin-top:14px;">
+        <div class="form-group" style="max-width:620px;margin-top:14px;">
           <label>Institute Name</label>
           <input id="gs-inst-name" type="text" placeholder="EduTrack Computer Institute">
         </div>
-        <div class="form-group" style="max-width:600px;margin-top:14px;">
+        <div class="form-group" style="max-width:620px;margin-top:14px;">
           <label>Institute Contact / Address</label>
           <input id="gs-inst-contact" type="text" placeholder="Phone / Email / Address">
         </div>
-        <div class="action-bar" style="max-width:600px;" id="settings-actions">
+        <div class="action-bar" style="max-width:620px;" id="settings-actions">
           <button class="btn btn-teal" onclick="saveSettings()">💾 Save Settings</button>
           <button class="btn btn-outline" onclick="testConnection()">🔌 Test Connection</button>
         </div>
       </div>
-      <!-- Google Sheets PULL section -->
-      <div class="card" id="sheets-pull-card">
-        <div class="card-header"><div class="card-title"><span class="icon">🔄</span> Sync Data from Google Sheets</div></div>
-        <p class="section-desc" style="margin-bottom:16px;">Pull existing student, payment and attendance data from your connected Google Sheet into this app. This overwrites local data with whatever is in the sheet.</p>
-        <div class="alert alert-warn">⚠️ This will replace all local data with data from your Google Sheet. Make sure the Web App URL is saved first.</div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;">
-          <button class="btn btn-teal" onclick="pullFromSheets('Students')">⬇️ Pull Students</button>
-          <button class="btn btn-teal" onclick="pullFromSheets('Payments')">⬇️ Pull Payments</button>
-          <button class="btn btn-teal" onclick="pullFromSheets('Attendance')">⬇️ Pull Attendance</button>
-          <button class="btn btn-primary" onclick="pullAllFromSheets()">⬇️ Pull All Data</button>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title"><span class="icon">🔄</span> Sync Data</div></div>
+        <p style="font-size:13.5px;color:var(--muted);margin-bottom:16px;">If you use this app on multiple devices or browsers, pull from Sheets to get the latest data here.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="pullAllFromSheets()">⬇️ Load All Data from Google Sheets</button>
+          <button class="btn btn-outline" onclick="debugTestWrite()">🔬 Test Write</button>
         </div>
         <div id="pull-status" style="margin-top:14px;"></div>
       </div>
 
       <div class="card">
-        <div class="card-header"><div class="card-title"><span class="icon">📖</span> Apps Script Setup</div></div>
-        <div style="font-size:13.5px;line-height:1.8;">
-          <p style="margin-bottom:10px;"><strong>Step 1:</strong> Create a Google Sheet. Copy the Spreadsheet ID from the URL.</p>
-          <p style="margin-bottom:10px;"><strong>Step 2:</strong> Go to <strong>Extensions → Apps Script</strong>, paste the code below, save.</p>
-          <p style="margin-bottom:10px;"><strong>Step 3:</strong> <strong>Deploy → New Deployment → Web App</strong>. Set access to <em>"Anyone"</em>. Copy the URL.</p>
-          <p style="margin-bottom:14px;"><strong>Step 4:</strong> Paste the URL in the field above and save.</p>
-          <div style="background:#1e293b;color:#e2e8f0;border-radius:8px;padding:16px;font-family:monospace;font-size:12px;overflow-x:auto;line-height:1.7;white-space:pre;">function doPost(e){
-  try{
-    const data=JSON.parse(e.postData.contents);
-    const ss=SpreadsheetApp.getActiveSpreadsheet();
-    if(data.action==='addStudent'){
-      const sh=getSheet(ss,'Students');
-      if(sh.getLastRow()===0) sh.appendRow(['Roll No','First Name','Last Name','DOB','Gender','Mobile','Email','Address','Course','Batch','Admission Date','Duration','Total Fees','Concession','Guardian','Guardian Mobile','Qualification','ID Type','Remarks','Status']);
-      const roll='ST'+String(sh.getLastRow()).padStart(4,'0');
-      sh.appendRow([roll,data.fname,data.lname,data.dob,data.gender,data.mobile,data.email,data.address,data.course,data.batch,data.admDate,data.duration,data.totalFees,data.concession,data.guardian,data.guardianMobile,data.qual,data.idType,data.remarks,'Active']);
-      return out({success:true,rollNo:roll});
-    }
-    if(data.action==='addPayment'){
-      const sh=getSheet(ss,'Payments');
-      if(sh.getLastRow()===0) sh.appendRow(['Receipt No','Date','Roll No','Student','Course','Amount','Mode','Reference','Remarks']);
-      const r='RCP'+String(Date.now()).slice(-6);
-      sh.appendRow([r,data.date,data.rollNo,data.studentName,data.course,data.amount,data.mode,data.reference,data.remarks]);
-      return out({success:true,receiptNo:r});
-    }
-    if(data.action==='addAttendance'){
-      const sh=getSheet(ss,'Attendance');
-      if(sh.getLastRow()===0) sh.appendRow(['Date','Roll No','Student','Course','Batch','Status','Topic','Software']);
-      data.records.forEach(r=>sh.appendRow([data.date,r.roll,r.name,data.course,data.batch,r.status,r.topic||'',r.software||'']));
-      return out({success:true});
-    }
-        if(data.action==='getData'){
-      const sh=ss.getSheetByName(data.sheet);
-      if(!sh) return out({success:true,data:[]});
-      const vals=sh.getDataRange().getValues();
-      const headers=vals[0]; const rows=vals.slice(1);
-      return out({success:true,data:rows.map(r=>Object.fromEntries(headers.map((h,i)=>[h,r[i]])))});
-    }
-    return out({success:false,error:'Unknown action'});
-  }catch(e){return out({success:false,error:e.toString()});}
+        <div class="card-header"><div class="card-title"><span class="icon">📋</span> Apps Script Setup — One Time Only</div></div>
+        <div style="font-size:13.5px;line-height:2;color:var(--text);">
+          <div style="display:grid;grid-template-columns:28px 1fr;gap:4px 12px;align-items:start;">
+            <div style="background:var(--navy);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin-top:4px;">1</div>
+            <div><strong>Create a Google Sheet</strong><br><span style="color:var(--muted);font-size:13px;">Go to <a href="https://sheets.google.com" target="_blank" style="color:var(--teal);">sheets.google.com</a> → create a new sheet → name it anything (e.g. "EduTrack Data").</span></div>
+            <div style="background:var(--navy);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin-top:4px;">2</div>
+            <div><strong>Open Apps Script</strong><br><span style="color:var(--muted);font-size:13px;">In the sheet: <strong>Extensions → Apps Script</strong>. Delete any existing code. Paste the entire code block below. Click 💾 Save.</span></div>
+            <div style="background:var(--navy);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin-top:4px;">3</div>
+            <div><strong>Deploy as Web App</strong><br><span style="color:var(--muted);font-size:13px;"><strong>Deploy → New Deployment → Web App</strong>. Set <em>"Execute as"</em> → <strong>Me</strong>. Set <em>"Who has access"</em> → <strong>Anyone</strong>. Click Deploy. Copy the Web App URL.</span></div>
+            <div style="background:var(--navy);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin-top:4px;">4</div>
+            <div><strong>Paste URL above &amp; save</strong><br><span style="color:var(--muted);font-size:13px;">Paste the URL in the field at the top of this page. Click <strong>Save Settings</strong> then <strong>Test Connection</strong>. Done — staff just log in normally.</span></div>
+          </div>
+          <div style="margin-top:20px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <strong style="font-size:13px;">Apps Script Code (copy all)</strong>
+              <button class="btn btn-outline" onclick="copyScript()" style="padding:5px 14px;font-size:12px;" id="copy-script-btn">📋 Copy Code</button>
+            </div>
+            <div style="background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:12px 14px;margin-bottom:12px;font-size:12.5px;color:#92400e;">
+              ⚠️ <strong>User accounts are now synced to Google Sheets</strong> via a <em>Users</em> sheet. Passwords are stored in plain text in that sheet — keep your spreadsheet private and share it only with trusted admins. The existing Apps Script below handles everything automatically; no changes needed.
+            </div>
+            <div id="script-code-block" style="background:#1e293b;color:#e2e8f0;border-radius:8px;padding:16px;font-family:monospace;font-size:12px;overflow-x:auto;line-height:1.7;white-space:pre;user-select:all;">// EduTrack Apps Script — paste ALL of this, replacing any existing code
+// After pasting: Deploy → New Deployment → Web App
+// Execute as: Me | Who has access: Anyone
+
+function doGet(e) {
+  var params = e &amp;&amp; e.parameter ? e.parameter : {};
+  var action = params.action || '';
+  return handleRequest(action, params);
 }
-function getSheet(ss,n){return ss.getSheetByName(n)||ss.insertSheet(n);}
-function out(o){return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);}
-function doGet(){return out({status:'running'});}</div>
+
+function doPost(e) {
+  var data = {};
+  try { data = JSON.parse(e.postData.contents); } catch(err) { data = {}; }
+  var action = data.action || '';
+  return handleRequest(action, data);
+}
+
+function handleRequest(action, data) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var result;
+
+  try {
+
+    // ── PING ──────────────────────────────────────────────────
+    if (action === 'ping') {
+      result = { success: true, message: 'Connected!' };
+
+    // ── READ SHEET ────────────────────────────────────────────
+    } else if (action === 'getData') {
+      var sheetName = data.sheet;
+      var sh = ss.getSheetByName(sheetName);
+      if (!sh || sh.getLastRow() &lt; 1) {
+        result = { success: true, data: [] };
+      } else {
+        var vals = sh.getDataRange().getValues();
+        var headers = vals[0].map(String);
+        var rows = vals.slice(1).filter(function(r) { return String(r[0]).trim() !== ''; });
+        result = {
+          success: true,
+          data: rows.map(function(r) {
+            var obj = {};
+            headers.forEach(function(h, i) {
+              obj[h] = (r[i] === null || r[i] === undefined) ? '' : String(r[i]);
+            });
+            return obj;
+          })
+        };
+      }
+
+    // ── OVERWRITE ENTIRE SHEET ────────────────────────────────
+    } else if (action === 'saveAll') {
+      var sheetName2  = String(data.sheet   || '');
+      var headers2    = data.headers;   // array of strings
+      var rows2       = data.rows;      // array of objects
+
+      if (!sheetName2 || !Array.isArray(headers2)) {
+        result = { success: false, error: 'saveAll: missing sheet or headers' };
+      } else {
+        var sh2 = ss.getSheetByName(sheetName2) || ss.insertSheet(sheetName2);
+        sh2.clearContents();
+        sh2.appendRow(headers2);
+        if (Array.isArray(rows2) &amp;&amp; rows2.length > 0) {
+          var matrix = rows2.map(function(r) {
+            return headers2.map(function(h) {
+              var v = r[h];
+              return (v === null || v === undefined) ? '' : v;
+            });
+          });
+          sh2.getRange(2, 1, matrix.length, headers2.length).setValues(matrix);
+        }
+        result = { success: true, saved: Array.isArray(rows2) ? rows2.length : 0 };
+      }
+
+    // ── APPEND ONE ROW ────────────────────────────────────────
+    } else if (action === 'appendRow') {
+      var sheetName3 = String(data.sheet || '');
+      var headers3   = data.headers;
+      var row3       = data.row;
+
+      if (!sheetName3 || !Array.isArray(headers3) || !row3) {
+        result = { success: false, error: 'appendRow: missing sheet, headers, or row' };
+      } else {
+        var sh3 = ss.getSheetByName(sheetName3) || ss.insertSheet(sheetName3);
+        if (sh3.getLastRow() === 0) sh3.appendRow(headers3);
+        sh3.appendRow(headers3.map(function(h) {
+          var v = row3[h];
+          return (v === null || v === undefined) ? '' : v;
+        }));
+        result = { success: true };
+      }
+
+    } else {
+      result = { success: false, error: 'Unknown action: ' + action };
+    }
+
+  } catch(err) {
+    result = { success: false, error: err.toString() };
+  }
+
+  return ContentService
+    .createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
+}</div>
+          </div>
         </div>
       </div>
+
     </div>
 
   </div><!-- /content -->
@@ -873,6 +959,11 @@ function doLogin() {
   document.getElementById('adm-date').value = todayStr();
   document.getElementById('ar-from').value = new Date(new Date().setDate(1)).toISOString().slice(0,10);
   document.getElementById('ar-to').value = todayStr();
+  // Auto-load latest data from Google Sheets on every login
+  if (cfg.gsUrl) {
+    setSyncBadge('syncing');
+    pullAllFromSheets(true).then(ok => setSyncBadge(ok ? 'ok' : 'error'));
+  }
 }
 
 function doLogout() {
@@ -1001,147 +1092,309 @@ let attendance = DB.get('attendance');
 let cfg = DB.cfg();
 
 // ============================================================
-// GOOGLE SHEETS — PUSH & PULL
+// GOOGLE SHEETS — ROBUST ENGINE
+// Uses GET (via URL params) for reads to avoid CORS preflight.
+// Uses POST with Content-Type text/plain for writes (no preflight).
+// Apps Script handles both doGet and doPost.
 // ============================================================
-async function callSheets(data) {
+
+// Low-level GET call — no preflight, no CORS issue
+async function sheetsGet(params) {
   if (!cfg.gsUrl) return { local: true };
   try {
-    const res = await fetch(cfg.gsUrl, { method:'POST', body: JSON.stringify(data), headers:{'Content-Type':'text/plain'} });
-    return await res.json();
+    const url = cfg.gsUrl + '?' + Object.entries(params).map(([k,v])=>encodeURIComponent(k)+'='+encodeURIComponent(v)).join('&');
+    const res = await fetch(url, { method:'GET' });
+    const text = await res.text();
+    return JSON.parse(text);
   } catch(e) { return { error: e.message }; }
 }
 
-async function pullFromSheets(sheetName) {
-  if (!cfg.gsUrl) { showPullStatus('error','❌ No Web App URL configured. Save Settings first.'); return; }
-  showPullStatus('info','⏳ Pulling '+sheetName+' from Google Sheets...');
+// Low-level POST call — Content-Type text/plain skips CORS preflight
+async function sheetsPost(data) {
+  if (!cfg.gsUrl) return { local: true };
   try {
     const res = await fetch(cfg.gsUrl, {
       method: 'POST',
-      body: JSON.stringify({ action: 'getData', sheet: sheetName }),
-      headers: {'Content-Type':'text/plain'}
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'text/plain' }
     });
-    const data = await res.json();
-    if (!data.success) { showPullStatus('error','❌ '+sheetName+': '+(data.error||'Unknown error')); return; }
-    const rows = data.data || [];
-    if (sheetName === 'Students') {
-      students = rows.map(r => ({
-        rollNo: r['Roll No']||r.rollNo||r['ROLL NO']||'',
-        fname: r['First Name']||r.fname||r['FIRST NAME']||'',
-        lname: r['Last Name']||r.lname||r['LAST NAME']||'',
-        dob: r['DOB']||r.dob||'', gender: r['Gender']||r.gender||'',
-        mobile: r['Mobile']||r.mobile||'', email: r['Email']||r.email||'',
-        address: r['Address']||r.address||'', course: r['Course']||r.course||'',
-        batch: r['Batch']||r.batch||'', admDate: r['Admission Date']||r.admDate||'',
-        duration: r['Duration']||r.duration||'3',
-        totalFees: parseFloat(r['Total Fees']||r.totalFees||0),
-        concession: parseFloat(r['Concession']||r.concession||0),
-        guardian: r['Guardian']||r.guardian||'', guardianMobile: r['Guardian Mobile']||r.guardianMobile||'',
-        qual: r['Qualification']||r.qual||'', idType: r['ID Type']||r.idType||'',
-        remarks: r['Remarks']||r.remarks||'', status: r['Status']||r.status||'Active'
-      })).filter(s=>s.rollNo);
-      DB.set('students', students);
-      showPullStatus('success','✅ Students pulled: '+students.length+' records loaded.');
-    } else if (sheetName === 'Payments') {
-      payments = rows.map(r => ({
-        receiptNo: r['Receipt No']||r.receiptNo||'',
-        date: r['Date']||r.date||'',
-        rollNo: r['Roll No']||r.rollNo||'',
-        studentName: r['Student']||r.studentName||'',
-        course: r['Course']||r.course||'',
-        amount: parseFloat(r['Amount']||r.amount||0),
-        mode: r['Mode']||r.mode||'Cash',
-        reference: r['Reference']||r.reference||'',
-        remarks: r['Remarks']||r.remarks||'',
-      })).filter(p=>p.receiptNo);
-      DB.set('payments', payments);
-      showPullStatus('success','✅ Payments pulled: '+payments.length+' records loaded.');
-    } else if (sheetName === 'Attendance') {
-      attendance = rows.map(r => ({
-        date: r['Date']||r.date||'',
-        rollNo: r['Roll No']||r.rollNo||'',
-        studentName: r['Student']||r.studentName||'',
-        course: r['Course']||r.course||'',
-        batch: r['Batch']||r.batch||'',
-        status: r['Status']||r.status||'Present',
-        topic: r['Topic']||r.topic||'',
-        software: r['Software']||r.software||'',
-      })).filter(a=>a.rollNo);
-      DB.set('attendance', attendance);
-      showPullStatus('success','✅ Attendance pulled: '+attendance.length+' records loaded.');
-    }
-    refreshDashboard();
-  } catch(e) {
-    showPullStatus('error','❌ Pull failed: '+e.message+'. Ensure the Apps Script has the getData action.');
-  }
+    const text = await res.text();
+    return JSON.parse(text);
+  } catch(e) { return { error: e.message }; }
 }
 
-async function pullAllFromSheets() {
-  if (!cfg.gsUrl) { showPullStatus('error','❌ No Web App URL configured.'); return; }
-  showPullStatus('info','⏳ Pulling all data from Google Sheets...');
-  const results = [];
-  for (const sheet of ['Students','Payments','Attendance']) {
-    try {
-      const res = await fetch(cfg.gsUrl, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'getData', sheet }),
-        headers: {'Content-Type':'text/plain'}
-      });
-      const data = await res.json();
-      results.push({ sheet, ok: data.success, count: (data.data||[]).length });
-      if (data.success) {
-        if (sheet==='Students') { await pullFromSheets('Students'); }
-        else if (sheet==='Payments') { await pullFromSheets('Payments'); }
-        else if (sheet==='Attendance') { await pullFromSheets('Attendance'); }
-      }
-    } catch(e) { results.push({ sheet, ok: false, count: 0 }); }
+// Legacy alias used throughout the app — just calls sheetsPost
+async function callSheets(data) {
+  return sheetsPost(data);
+}
+
+// Fetch one sheet as parsed rows
+async function fetchSheet(sheetName) {
+  const r = await sheetsGet({ action: 'getData', sheet: sheetName });
+  if (r.local) return null;           // no URL configured
+  if (r.error || !r.success) return null;
+  return r.data || [];
+}
+
+// Write entire local dataset back to one sheet (overwrite)
+async function saveSheet(sheetName, headers, rows) {
+  return sheetsPost({ action: 'saveAll', sheet: sheetName, headers, rows });
+}
+
+// ---- Sheet definitions ----
+const SHEET_DEFS = {
+  Students:   ['Roll No','First Name','Last Name','DOB','Gender','Mobile','Email','Address','Course','Batch','Admission Date','Duration','Total Fees','Concession','Guardian','Guardian Mobile','Qualification','ID Type','Remarks','Status'],
+  Payments:   ['Receipt No','Date','Roll No','Student','Course','Amount','Mode','Reference','Remarks'],
+  Attendance: ['Date','Roll No','Student','Course','Batch','Status','Topic','Software'],
+  Users:      ['Name','Username','Password','Role','Department','Mobile','Courses']
+};
+
+// Convert internal student object → sheet row
+function studentToRow(s) {
+  return { 'Roll No':s.rollNo, 'First Name':s.fname, 'Last Name':s.lname, 'DOB':s.dob,
+    'Gender':s.gender, 'Mobile':s.mobile, 'Email':s.email||'', 'Address':s.address,
+    'Course':s.course, 'Batch':s.batch, 'Admission Date':s.admDate, 'Duration':s.duration,
+    'Total Fees':s.totalFees, 'Concession':s.concession||0,
+    'Guardian':s.guardian||'', 'Guardian Mobile':s.guardianMobile||'',
+    'Qualification':s.qual||'', 'ID Type':s.idType||'', 'Remarks':s.remarks||'', 'Status':s.status||'Active' };
+}
+function paymentToRow(p) {
+  return { 'Receipt No':p.receiptNo, 'Date':p.date, 'Roll No':p.rollNo,
+    'Student':p.studentName, 'Course':p.course, 'Amount':p.amount,
+    'Mode':p.mode, 'Reference':p.reference||'', 'Remarks':p.remarks||'' };
+}
+function attendanceToRow(a) {
+  return { 'Date':a.date, 'Roll No':a.rollNo, 'Student':a.studentName,
+    'Course':a.course, 'Batch':a.batch, 'Status':a.status,
+    'Topic':a.topic||'', 'Software':a.software||'' };
+}
+
+// Convert sheet row → internal object
+function rowToStudent(r) {
+  return { rollNo:r['Roll No']||'', fname:r['First Name']||'', lname:r['Last Name']||'',
+    dob:r['DOB']||'', gender:r['Gender']||'', mobile:r['Mobile']||'',
+    email:r['Email']||'', address:r['Address']||'', course:r['Course']||'',
+    batch:r['Batch']||'', admDate:r['Admission Date']||'', duration:r['Duration']||'3',
+    totalFees:parseFloat(r['Total Fees']||0), concession:parseFloat(r['Concession']||0),
+    guardian:r['Guardian']||'', guardianMobile:r['Guardian Mobile']||'',
+    qual:r['Qualification']||'', idType:r['ID Type']||'',
+    remarks:r['Remarks']||'', status:r['Status']||'Active' };
+}
+function rowToPayment(r) {
+  return { receiptNo:r['Receipt No']||'', date:r['Date']||'', rollNo:r['Roll No']||'',
+    studentName:r['Student']||'', course:r['Course']||'',
+    amount:parseFloat(r['Amount']||0), mode:r['Mode']||'Cash',
+    reference:r['Reference']||'', remarks:r['Remarks']||'' };
+}
+function rowToAttendance(r) {
+  return { date:r['Date']||'', rollNo:r['Roll No']||'', studentName:r['Student']||'',
+    course:r['Course']||'', batch:r['Batch']||'', status:r['Status']||'Present',
+    topic:r['Topic']||'', software:r['Software']||'' };
+}
+function userToRow(u) {
+  return { 'Name':u.name, 'Username':u.username, 'Password':u.password,
+    'Role':u.role, 'Department':u.dept||'', 'Mobile':u.mobile||'',
+    'Courses': (u.courses||[]).join('|') };
+}
+function rowToUser(r) {
+  const coursesRaw = r['Courses']||'';
+  return { name:r['Name']||'', username:r['Username']||'', password:r['Password']||'',
+    role:r['Role']||'office', dept:r['Department']||'', mobile:r['Mobile']||'',
+    courses: coursesRaw ? coursesRaw.split('|').filter(Boolean) : [] };
+}
+
+// ---- Pull all sheets on login / manual sync ----
+async function pullAllFromSheets(silent) {
+  if (!cfg.gsUrl) {
+    if (!silent) showPullStatus('error','❌ No Web App URL saved. Go to Configuration and save the URL first.');
+    return false;
   }
-  const summary = results.map(r=>r.sheet+': '+(r.ok?r.count+' rows':'failed')).join(' | ');
-  showPullStatus('success','✅ Sync complete — '+summary);
+  if (!silent) showPullStatus('info','⏳ Loading data from Google Sheets…');
+  let ok = true;
+  try {
+    const [sRows, pRows, aRows, uRows] = await Promise.all([
+      fetchSheet('Students'), fetchSheet('Payments'), fetchSheet('Attendance'), fetchSheet('Users')
+    ]);
+    if (sRows !== null) {
+      students = sRows.map(rowToStudent).filter(s=>s.rollNo);
+      DB.set('students', students);
+    } else { ok = false; }
+    if (pRows !== null) {
+      payments = pRows.map(rowToPayment).filter(p=>p.receiptNo);
+      DB.set('payments', payments);
+    } else { ok = false; }
+    if (uRows !== null && uRows.length > 0) {
+      const cloudUsers = uRows.map(rowToUser).filter(u=>u.username);
+      // Merge: always trust cloud, but keep local admin if cloud has none
+      const hasAdmin = cloudUsers.some(u=>u.username==='admin');
+      if (!hasAdmin) {
+        const localAdmin = getUsers().find(u=>u.username==='admin');
+        if (localAdmin) cloudUsers.unshift(localAdmin);
+      }
+      saveUsers(cloudUsers);
+    }
+    if (aRows !== null) {
+      attendance = aRows.map(rowToAttendance).filter(a=>a.rollNo);
+      DB.set('attendance', attendance);
+    } else { ok = false; }
+    refreshDashboard();
+    if (!silent) {
+      if (ok) showPullStatus('success','✅ Data loaded — Students: '+students.length+', Payments: '+payments.length+', Attendance: '+attendance.length+', Users: '+getUsers().length);
+      else showPullStatus('warn','⚠️ Partial load — check the Apps Script URL and try again.');
+    }
+  } catch(e) {
+    ok = false;
+    if (!silent) showPullStatus('error','❌ Load failed: '+e.message);
+  }
+  return ok;
+}
+
+// ---- Push local → Sheets (used on every save, debounced) ----
+let _pushTimer = null;
+function schedulePush() {
+  if (!cfg.gsUrl) return;
+  clearTimeout(_pushTimer);
+  _pushTimer = setTimeout(doPush, 2000); // 2 s debounce
+}
+
+async function doPush() {
+  setSyncBadge('syncing');
+  const results = await Promise.all([
+    saveSheet('Students',   SHEET_DEFS.Students,   students.map(studentToRow)),
+    saveSheet('Payments',   SHEET_DEFS.Payments,   payments.map(paymentToRow)),
+    saveSheet('Attendance', SHEET_DEFS.Attendance, attendance.map(attendanceToRow)),
+    saveSheet('Users',      SHEET_DEFS.Users,      getUsers().map(userToRow))
+  ]);
+  const allOk = results.every(r => r && r.success);
+  setSyncBadge(allOk ? 'ok' : 'error');
+}
+
+async function pushUsersToSheets() {
+  if (!cfg.gsUrl) return;
+  return saveSheet('Users', SHEET_DEFS.Users, getUsers().map(userToRow));
+}
+
+function setSyncBadge(state) {
+  const el = document.getElementById('sync-badge');
+  if (!el) return;
+  if (state === 'syncing') { el.textContent='⏳ Saving…'; el.style.color='var(--muted)'; }
+  else if (state === 'ok')  { el.textContent='☁️ Saved'; el.style.color='var(--green)'; setTimeout(()=>{el.textContent='';},3000); }
+  else                       { el.textContent='⚠️ Sync failed'; el.style.color='var(--amber)'; setTimeout(()=>{el.textContent='';},6000); }
 }
 
 function showPullStatus(type, msg) {
   const el = document.getElementById('pull-status');
-  if (!el) return;
-  el.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+  if (el) el.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+}
+
+async function debugTestWrite() {
+  if (!cfg.gsUrl) { showPullStatus('error','❌ No URL saved. Go to Configuration first.'); return; }
+  showPullStatus('info','🔬 Testing write to Google Sheets…');
+  try {
+    // Step 1: ping
+    const ping = await sheetsGet({ action: 'ping' });
+    if (!ping.success) { showPullStatus('error','❌ Ping failed: ' + JSON.stringify(ping)); return; }
+
+    // Step 2: write a test row
+    const writeRes = await sheetsPost({
+      action: 'saveAll',
+      sheet: '_EduTrack_Test',
+      headers: ['Test','Timestamp'],
+      rows: [{ Test: 'write_ok', Timestamp: new Date().toISOString() }]
+    });
+    if (!writeRes || !writeRes.success) {
+      showPullStatus('error','❌ Write failed: ' + JSON.stringify(writeRes));
+      return;
+    }
+
+    // Step 3: read it back
+    const readRes = await sheetsGet({ action: 'getData', sheet: '_EduTrack_Test' });
+    if (!readRes || !readRes.success || !readRes.data || !readRes.data.length) {
+      showPullStatus('error','❌ Write succeeded but read-back failed: ' + JSON.stringify(readRes));
+      return;
+    }
+
+    showPullStatus('success','✅ Write + Read both work! Google Sheets is fully functional. You can now delete the _EduTrack_Test sheet from your spreadsheet.');
+  } catch(e) {
+    showPullStatus('error','❌ Exception: ' + e.message);
+  }
 }
 
 // ============================================================
 // SETTINGS
 // ============================================================
 function saveSettings() {
-  if (!canModify()) { showAlert('global-alert','error','❌ Only Admin can change system settings.'); return; }
+  if (!canModify()) { showConnStatus('error','❌ Only Admin can change settings.'); return; }
   cfg = {
-    gsUrl: document.getElementById('gs-url').value.trim(),
-    instName: document.getElementById('gs-inst-name').value.trim() || 'EduTrack Institute',
+    gsUrl:       document.getElementById('gs-url').value.trim(),
+    instName:    document.getElementById('gs-inst-name').value.trim() || 'EduTrack Institute',
     instContact: document.getElementById('gs-inst-contact').value.trim()
   };
   DB.saveCfg(cfg);
-  showAlert('global-alert','success','✅ Settings saved!');
+  showConnStatus('success','✅ Settings saved! Staff will load data automatically when they log in.');
 }
 
 function loadSettings() {
-  if (cfg.gsUrl) document.getElementById('gs-url').value = cfg.gsUrl;
-  if (cfg.instName) document.getElementById('gs-inst-name').value = cfg.instName;
-  if (cfg.instContact) document.getElementById('gs-inst-contact').value = cfg.instContact;
-  if (!canModify()) {
-    ['gs-url','gs-inst-name','gs-inst-contact'].forEach(id => document.getElementById(id).disabled = true);
-    document.getElementById('settings-actions').style.display = 'none';
+  document.getElementById('gs-url').value        = cfg.gsUrl || '';
+  document.getElementById('gs-inst-name').value  = cfg.instName || '';
+  document.getElementById('gs-inst-contact').value = cfg.instContact || '';
+  const editable = canModify();
+  ['gs-url','gs-inst-name','gs-inst-contact'].forEach(id => {
+    document.getElementById(id).disabled = !editable;
+  });
+  document.getElementById('settings-actions').style.display = editable ? '' : 'none';
+  // Show current connection state
+  const bar = document.getElementById('conn-status-bar');
+  if (cfg.gsUrl) {
+    bar.style.display = 'block';
+    bar.innerHTML = '<div class="alert alert-info" style="margin:0;">🔗 URL configured. Click <strong>Test Connection</strong> to verify it is working.</div>';
   } else {
-    ['gs-url','gs-inst-name','gs-inst-contact'].forEach(id => document.getElementById(id).disabled = false);
-    document.getElementById('settings-actions').style.display = '';
+    bar.style.display = 'block';
+    bar.innerHTML = '<div class="alert alert-warn" style="margin:0;">⚠️ No URL saved yet. Follow the setup guide below.</div>';
   }
 }
 
 async function testConnection() {
   const url = document.getElementById('gs-url').value.trim();
-  if (!url) { showAlert('global-alert','error','Enter a URL first.'); return; }
-  showAlert('global-alert','info','🔌 Testing...');
+  if (!url) { showConnStatus('error','❌ Enter a Web App URL first.'); return; }
+  showConnStatus('info','🔌 Testing connection…');
   try {
-    const res = await fetch(url);
-    showAlert('global-alert','success','✅ Connection successful!');
+    const fullUrl = url + '?action=ping';
+    const res = await fetch(fullUrl, { method: 'GET' });
+    const text = await res.text();
+    let json = {};
+    try { json = JSON.parse(text); } catch(e) {}
+    if (json.success) {
+      showConnStatus('success','✅ Connection successful! Google Sheets is connected and ready.');
+    } else if (text.includes('Connected') || res.ok) {
+      showConnStatus('success','✅ Connected! The Apps Script is responding correctly.');
+    } else {
+      showConnStatus('error','❌ Script responded but with an unexpected format. Re-deploy the Apps Script and try again.');
+    }
   } catch(e) {
-    showAlert('global-alert','error','❌ Connection failed: ' + e.message);
+    showConnStatus('error','❌ Cannot reach the URL. Check you deployed correctly and set access to "Anyone".');
   }
+}
+
+function showConnStatus(type, msg) {
+  const bar = document.getElementById('conn-status-bar');
+  if (!bar) return;
+  bar.style.display = 'block';
+  bar.innerHTML = `<div class="alert alert-${type}" style="margin:0;">${msg}</div>`;
+}
+
+function copyScript() {
+  const code = document.getElementById('script-code-block').textContent;
+  navigator.clipboard.writeText(code).then(()=>{
+    const btn = document.getElementById('copy-script-btn');
+    btn.textContent = '✅ Copied!';
+    setTimeout(()=>{ btn.textContent = '📋 Copy Code'; }, 2500);
+  }).catch(()=>{
+    // fallback: select the text
+    const el = document.getElementById('script-code-block');
+    const range = document.createRange(); range.selectNodeContents(el);
+    window.getSelection().removeAllRanges(); window.getSelection().addRange(range);
+  });
 }
 
 // ============================================================
@@ -1254,6 +1507,7 @@ function saveUser() {
     showAlert('users-alert','success','✅ ' + (role === 'teacher' ? 'Teacher' : 'User') + ' account created: @' + username);
   }
   saveUsers(users);
+  pushUsersToSheets();
   closeModal('user-modal');
   renderUsersPage();
 }
@@ -1264,8 +1518,31 @@ function removeUser(i) {
   if (!confirm('Remove user "' + users[i].name + '"?')) return;
   users.splice(i, 1);
   saveUsers(users);
+  pushUsersToSheets();
   renderUsersPage();
   showAlert('users-alert','success','User removed.');
+}
+
+async function syncUsersFromSheets() {
+  if (!cfg.gsUrl) { showAlert('users-alert','error','❌ No Google Sheets URL configured. Go to Configuration first.'); return; }
+  showAlert('users-alert','info','⏳ Syncing users from Google Sheets…');
+  const uRows = await fetchSheet('Users');
+  if (!uRows) { showAlert('users-alert','error','❌ Could not fetch Users sheet. Check your Apps Script URL.'); return; }
+  if (uRows.length === 0) {
+    // Push local users to Sheets if the sheet is empty (first-time setup)
+    await pushUsersToSheets();
+    showAlert('users-alert','success','✅ No users found in Sheets — local users pushed to Sheets for first-time setup.');
+    return;
+  }
+  const cloudUsers = uRows.map(rowToUser).filter(u=>u.username);
+  const hasAdmin = cloudUsers.some(u=>u.username==='admin');
+  if (!hasAdmin) {
+    const localAdmin = getUsers().find(u=>u.username==='admin');
+    if (localAdmin) cloudUsers.unshift(localAdmin);
+  }
+  saveUsers(cloudUsers);
+  renderUsersPage();
+  showAlert('users-alert','success','✅ Users synced from Google Sheets — ' + cloudUsers.length + ' account(s) loaded.');
 }
 
 // ============================================================
@@ -1304,14 +1581,10 @@ async function submitAdmission() {
   const roll = 'ST' + String(students.length + 1).padStart(4,'0');
   students.push({ ...fields, rollNo: roll, status:'Active', createdAt: new Date().toISOString(), addedBy: currentUser.username });
   DB.set('students', students);
+  schedulePush();
 
-  const result = await callSheets({ action:'addStudent', ...fields });
-  btn.disabled = false; txt.innerHTML = '💾 Save to Google Sheets';
-
-  const msg = result.local ? '✅ Admitted! Roll No: <strong>' + roll + '</strong> (Local — set up Sheets in Settings for cloud sync)' :
-              result.error ? '⚠️ Saved locally. Sheets error: ' + result.error :
-              '✅ Admitted! Roll No: <strong>' + (result.rollNo||roll) + '</strong> — Saved to Google Sheets!';
-  showAlert('admission-alert','success',msg);
+  btn.disabled = false; txt.innerHTML = '💾 Save Student';
+  showAlert('admission-alert','success','✅ Admitted! Roll No: <strong>' + roll + '</strong>' + (cfg.gsUrl ? ' — saving to Google Sheets…' : ' (saved locally)'));
   clearAdmissionForm();
 }
 
@@ -1431,6 +1704,7 @@ function saveStudentEdit() {
     editedBy: currentUser.username, editedAt: new Date().toISOString()
   };
   DB.set('students', students);
+  schedulePush();
   closeModal('edit-student-modal');
   renderStudentsTable();
   showAlert('global-alert','success','✅ Student record updated.');
@@ -1442,6 +1716,7 @@ function deleteStudent() {
   if (!confirm('Delete student ' + roll + '? This cannot be undone.')) return;
   students = students.filter(s=>s.rollNo!==roll);
   DB.set('students', students);
+  schedulePush();
   closeModal('edit-student-modal');
   renderStudentsTable();
   showAlert('global-alert','success','Student deleted.');
@@ -1490,7 +1765,7 @@ async function collectFee() {
   };
   payments.push(pd);
   DB.set('payments', payments);
-  await callSheets({ action:'addPayment', ...pd });
+  schedulePush();
 
   btn.disabled = false; btn.innerHTML = '💾 Record Payment';
   showAlert('fees-alert','success','✅ ₹'+amount.toLocaleString('en-IN')+' recorded! Receipt: <strong>'+rcptNo+'</strong>');
@@ -1628,7 +1903,7 @@ async function submitAttendance() {
   const attData = records.map(r=>({ date, rollNo:r.roll, studentName:r.name, course, batch, status:r.status, topic:r.topic, software:r.software, recordedBy:currentUser.username, recordedAt:new Date().toISOString() }));
   attendance=[...attendance,...attData];
   DB.set('attendance',attendance);
-  await callSheets({action:'addAttendance',date,course,batch,records});
+  schedulePush();
 
   btn.disabled=false; btn.innerHTML='💾 Submit Attendance';
   showAlert('att-alert','success',`✅ Attendance for ${records.length} students saved. Present: ${records.filter(r=>r.status==='Present').length}, Absent: ${records.filter(r=>r.status==='Absent').length}`);

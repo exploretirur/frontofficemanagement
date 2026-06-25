@@ -1,0 +1,2967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduTrack — Computer Institute Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0f1f3d;
+  --navy-light: #1a3260;
+  --teal: #00b09b;
+  --teal-light: #96fbc4;
+  --amber: #f59e0b;
+  --red: #ef4444;
+  --green: #10b981;
+  --surface: #f8fafd;
+  --card: #ffffff;
+  --border: #e2e8f0;
+  --text: #1e293b;
+  --muted: #64748b;
+  --sidebar-w: 240px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'DM Sans', sans-serif; background: var(--surface); color: var(--text); display: flex; min-height: 100vh; }
+
+/* ===== LOGIN SCREEN ===== */
+#login-screen {
+  position: fixed; inset: 0; z-index: 1000;
+  background: linear-gradient(135deg, #0f1f3d 0%, #1a3260 50%, #0d2b4a 100%);
+  display: flex; align-items: center; justify-content: center;
+}
+.login-wrap {
+  width: 100%; max-width: 420px; padding: 20px;
+}
+.login-logo {
+  text-align: center; margin-bottom: 32px;
+}
+.login-logo h1 {
+  font-family: 'Playfair Display', serif; font-size: 36px; color: var(--teal-light);
+}
+.login-logo p { font-size: 12px; color: rgba(255,255,255,0.4); letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+.login-card {
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 20px; padding: 32px; backdrop-filter: blur(10px);
+}
+/* role-tabs removed */
+.login-field { margin-bottom: 16px; }
+.login-field label { display: block; font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 6px; letter-spacing: 0.5px; text-transform: uppercase; }
+.login-field input {
+  width: 100%; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 10px; padding: 11px 14px; color: #fff; font-size: 14px;
+  font-family: 'DM Sans', sans-serif; outline: none; transition: border 0.2s;
+}
+.login-field input::placeholder { color: rgba(255,255,255,0.3); }
+.login-field input:focus { border-color: var(--teal); background: rgba(0,176,155,0.08); }
+.login-error { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; font-size: 13px; padding: 10px 12px; border-radius: 8px; margin-bottom: 16px; display: none; }
+.btn-login {
+  width: 100%; padding: 13px; background: var(--teal); color: #fff; border: none;
+  border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; transition: background 0.2s; margin-top: 4px;
+}
+.btn-login:hover { background: #009688; }
+.login-hint {
+  text-align: center; margin-top: 20px; font-size: 11.5px; color: rgba(255,255,255,0.3);
+  line-height: 1.8;
+}
+.login-hint strong { color: rgba(255,255,255,0.5); }
+
+/* ===== APP SHELL ===== */
+#app-shell { display: none; width: 100%; }
+#app-shell.visible { display: flex; }
+
+/* SIDEBAR */
+.sidebar {
+  width: var(--sidebar-w); background: var(--navy); color: #fff;
+  display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100;
+  overflow-y: auto;
+}
+.sidebar-brand { padding: 20px 20px 14px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.sidebar-brand h1 { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--teal-light); }
+.sidebar-brand p { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; letter-spacing: 1px; text-transform: uppercase; }
+.user-info-sidebar {
+  margin: 12px 12px 0; background: rgba(255,255,255,0.07);
+  border-radius: 10px; padding: 10px 12px;
+  display: flex; align-items: center; gap: 10px;
+}
+.user-avatar-sm {
+  width: 32px; height: 32px; border-radius: 50%; background: var(--teal);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.user-info-sidebar .uname { font-size: 13px; font-weight: 500; color: #fff; }
+.user-info-sidebar .urole { font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px; }
+.sidebar-section { padding: 12px 12px 4px; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.35); font-weight: 500; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px; cursor: pointer; border-radius: 8px; margin: 2px 8px;
+  font-size: 13.5px; color: rgba(255,255,255,0.7); transition: all 0.15s;
+}
+.nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+.nav-item.active { background: var(--teal); color: #fff; }
+.nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+.nav-item.locked { opacity: 0.35; cursor: not-allowed; }
+.nav-item.locked:hover { background: transparent; color: rgba(255,255,255,0.7); }
+.lock-badge { font-size: 10px; margin-left: auto; opacity: 0.5; }
+.sidebar-logout {
+  margin: auto 12px 16px; padding: 10px 14px; border-radius: 8px; cursor: pointer;
+  display: flex; align-items: center; gap: 8px; font-size: 13px;
+  color: rgba(255,255,255,0.5); transition: all 0.15s;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.sidebar-logout:hover { background: rgba(239,68,68,0.15); color: #fca5a5; border-color: rgba(239,68,68,0.3); }
+
+/* MAIN */
+.main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+.topbar {
+  background: #fff; border-bottom: 1px solid var(--border);
+  padding: 0 32px; height: 60px; display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 50;
+}
+.topbar h2 { font-size: 17px; font-weight: 600; }
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+.role-badge {
+  font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; letter-spacing: 0.3px;
+}
+.role-badge.admin { background: #ede9fe; color: #5b21b6; }
+.role-badge.office { background: #dbeafe; color: #1d4ed8; }
+.role-badge.teacher { background: #d1fae5; color: #065f46; }
+.readonly-banner {
+  background: #eff6ff; border-bottom: 1px solid #bfdbfe;
+  padding: 7px 32px; font-size: 12px; color: #1e40af;
+  display: none; align-items: center; gap: 8px;
+}
+.readonly-banner.visible { display: flex; }
+
+.content { padding: 28px 32px; flex: 1; }
+.page { display: none; }
+.page.active { display: block; }
+
+/* ACCESS DENIED */
+.access-denied {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 300px; text-align: center;
+}
+.access-denied .icon { font-size: 56px; margin-bottom: 16px; }
+.access-denied h3 { font-size: 20px; font-weight: 600; color: var(--navy); margin-bottom: 8px; }
+.access-denied p { color: var(--muted); font-size: 14px; }
+
+/* CARDS */
+.card { background: var(--card); border-radius: 14px; border: 1px solid var(--border); padding: 24px; margin-bottom: 24px; }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+.card-title { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.card-title .icon { font-size: 18px; }
+
+/* STAT CARDS */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.stat-card { background: var(--card); border-radius: 14px; border: 1px solid var(--border); padding: 20px; }
+.stat-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.stat-value { font-size: 28px; font-weight: 600; color: var(--navy); }
+.stat-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.stat-card.teal { border-left: 4px solid var(--teal); }
+.stat-card.amber { border-left: 4px solid var(--amber); }
+.stat-card.green { border-left: 4px solid var(--green); }
+.stat-card.red { border-left: 4px solid var(--red); }
+
+/* FORMS */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group.full { grid-column: 1 / -1; }
+label { font-size: 13px; font-weight: 500; color: var(--text); }
+input, select, textarea {
+  border: 1.5px solid var(--border); border-radius: 8px; padding: 9px 12px;
+  font-size: 14px; font-family: 'DM Sans', sans-serif; color: var(--text);
+  background: #fff; transition: border 0.15s; outline: none;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(0,176,155,0.1); }
+input:disabled, select:disabled, textarea:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
+textarea { min-height: 80px; resize: vertical; }
+
+/* BUTTONS */
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+.btn-primary { background: var(--navy); color: #fff; }
+.btn-primary:hover { background: var(--navy-light); }
+.btn-teal { background: var(--teal); color: #fff; }
+.btn-teal:hover { background: #009688; }
+.btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text); }
+.btn-outline:hover { border-color: var(--navy); color: var(--navy); }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-success { background: var(--green); color: #fff; }
+.btn-amber { background: var(--amber); color: #fff; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* TABLE */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th { background: #f8fafd; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); padding: 10px 14px; text-align: left; border-bottom: 1.5px solid var(--border); }
+td { padding: 11px 14px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+tr:hover td { background: #f8fafd; }
+.chip { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.chip-green { background: #dcfce7; color: #15803d; }
+.chip-red { background: #fee2e2; color: #b91c1c; }
+.chip-amber { background: #fef3c7; color: #b45309; }
+.chip-blue { background: #dbeafe; color: #1d4ed8; }
+.chip-purple { background: #ede9fe; color: #5b21b6; }
+
+/* ATTENDANCE */
+.att-student-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+.att-name { flex: 1; font-weight: 500; font-size: 14px; }
+.att-status { display: flex; gap: 8px; }
+.att-radio { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+.att-radio input { width: auto; accent-color: var(--teal); }
+.att-fields { display: flex; gap: 8px; flex: 2; }
+.att-fields input { flex: 1; padding: 7px 10px; font-size: 13px; }
+
+/* RECEIPT */
+.receipt { max-width: 520px; margin: 0 auto; }
+.receipt-header { background: var(--navy); color: #fff; padding: 24px; border-radius: 14px 14px 0 0; text-align: center; }
+.receipt-header h2 { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--teal-light); }
+.receipt-header p { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 4px; }
+.receipt-body { background: #fff; border: 1px solid var(--border); border-top: none; padding: 24px; }
+.receipt-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px dashed var(--border); font-size: 14px; }
+.receipt-total { display: flex; justify-content: space-between; padding: 12px 0; font-size: 17px; font-weight: 700; color: var(--navy); }
+.receipt-footer { background: #f8fafd; border: 1px solid var(--border); border-top: none; padding: 16px; border-radius: 0 0 14px 14px; text-align: center; font-size: 12px; color: var(--muted); }
+.stamp { display: inline-block; border: 3px solid var(--green); color: var(--green); padding: 6px 16px; border-radius: 6px; font-weight: 700; font-size: 14px; letter-spacing: 1px; transform: rotate(-3deg); margin-top: 8px; }
+
+/* ALERT */
+.alert { padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+.alert-success { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+.alert-error { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+.alert-info { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.alert-warn { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+
+/* LOADER */
+.loader { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* TABS */
+.tabs { display: flex; gap: 4px; margin-bottom: 24px; background: #f1f5f9; padding: 4px; border-radius: 10px; width: fit-content; }
+.tab { padding: 8px 20px; border-radius: 7px; font-size: 13.5px; cursor: pointer; color: var(--muted); transition: all 0.15s; font-weight: 500; }
+.tab.active { background: #fff; color: var(--navy); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+
+/* MODAL */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: none; align-items: center; justify-content: center; }
+.modal-backdrop.open { display: flex; }
+.modal { background: #fff; border-radius: 16px; padding: 28px; max-width: 520px; width: 90%; max-height: 85vh; overflow-y: auto; }
+.modal h3 { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+
+/* MINI BAR */
+.mini-bar { height: 28px; background: var(--teal); border-radius: 4px; margin-bottom: 6px; display: flex; align-items: center; padding-left: 8px; font-size: 12px; color: #fff; font-weight: 500; min-width: 40px; transition: width 0.5s; }
+
+/* USER MANAGEMENT */
+.user-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+.user-avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+.ua-admin { background: #ede9fe; color: #5b21b6; }
+.ua-office { background: #dbeafe; color: #1d4ed8; }
+.ua-teacher { background: #d1fae5; color: #065f46; }
+
+/* PRINT */
+@media print {
+  #login-screen, .sidebar, .topbar, .no-print, .readonly-banner { display: none !important; }
+  .main { margin-left: 0; }
+  .content { padding: 0; }
+  .page { display: block !important; }
+  .page:not(.active) { display: none !important; }
+}
+
+/* ===== MOBILE HAMBURGER ===== */
+.hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; padding:8px; }
+.hamburger span { width:22px; height:2px; background:var(--text); border-radius:2px; transition:all 0.3s; }
+.sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:99; }
+.sidebar-overlay.open { display:block; }
+
+@media (max-width: 768px) {
+  :root { --sidebar-w: 0px; }
+  .sidebar {
+    width: 260px; transform: translateX(-100%); transition: transform 0.3s;
+    z-index: 110;
+  }
+  .sidebar.open { transform: translateX(0); }
+  .main { margin-left: 0; }
+  .hamburger { display: flex; }
+  .topbar { padding: 0 16px; }
+  .topbar h2 { font-size: 15px; }
+  .content { padding: 16px; }
+  .stats-grid { grid-template-columns: 1fr 1fr; gap:10px; }
+  .stat-value { font-size: 22px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .form-grid-3 { grid-template-columns: 1fr; }
+  .card { padding: 16px; }
+  .action-bar { flex-wrap: wrap; }
+  .btn { font-size: 13px; padding: 8px 14px; }
+  .att-student-row { flex-wrap: wrap; gap: 8px; }
+  .att-fields { min-width: 100%; }
+  .marks-student-row { grid-template-columns: 50px 1fr; gap:6px; }
+  .marks-student-row .mk-num-fields { grid-column: 1/-1; display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; }
+  table { font-size: 12px; }
+  th, td { padding: 8px 10px; }
+  .modal { padding: 20px; max-width: 96vw; }
+  .tabs { flex-wrap: wrap; width: 100%; }
+  .tab { flex: 1; text-align: center; font-size: 12px; padding: 7px 10px; }
+  .receipt { max-width: 100%; }
+  .salary-card, .net-pay-card { padding: 14px; }
+  .salary-card .stat-value, .net-pay-card .stat-value { font-size: 20px; }
+  .form-grid-2col { grid-template-columns: 1fr !important; }
+  .dash-bar-label { min-width: 80px; font-size: 11px; }
+  .topbar-right span:not(#topbar-role-badge):not(#topbar-uname) { display: none; }
+  #topbar-uname { max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+  .user-row { flex-wrap: wrap; gap: 8px; }
+  .master-item { flex-wrap: wrap; }
+}
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr; }
+  .login-card { padding: 24px 18px; }
+}
+@media (min-width: 769px) {
+  .stats-grid { grid-template-columns: repeat(4, 1fr); }
+  .form-grid { grid-template-columns: 1fr 1fr; }
+  .form-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+}
+
+.section-desc { color: var(--muted); font-size: 13.5px; margin-bottom: 20px; }
+.required { color: var(--red); }
+.divider { height: 1px; background: var(--border); margin: 20px 0; }
+.action-bar { display: flex; gap: 10px; align-items: center; justify-content: flex-end; margin-top: 20px; }
+/* DUE badges */
+.due-overdue { background:#fee2e2; color:#b91c1c; border-radius:6px; padding:2px 8px; font-size:11px; font-weight:600; }
+.due-today   { background:#fef3c7; color:#b45309; border-radius:6px; padding:2px 8px; font-size:11px; font-weight:600; }
+.due-soon    { background:#dbeafe; color:#1d4ed8; border-radius:6px; padding:2px 8px; font-size:11px; font-weight:600; }
+/* SALARY PAGE */
+.salary-card { background: linear-gradient(135deg, #0f1f3d, #1a3260); color:#fff; border-radius:14px; padding:20px; }
+.salary-card .stat-label { color: rgba(255,255,255,0.5); }
+.salary-card .stat-value { color: var(--teal-light); font-size:26px; font-weight:700; }
+.net-pay-card { background: linear-gradient(135deg, #065f46, #059669); color:#fff; border-radius:14px; padding:20px; }
+.net-pay-card .stat-label { color: rgba(255,255,255,0.6); }
+.net-pay-card .stat-value { color: #fff; font-size:28px; font-weight:700; }
+/* MASTER DATA */
+.master-item { display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid #f1f5f9; }
+.master-item:last-child { border-bottom:none; }
+.master-badge { width:34px; height:34px; border-radius:8px; background:var(--navy); color:var(--teal-light); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; flex-shrink:0; }
+/* MARKS */
+.marks-student-row { display:grid; grid-template-columns:60px 1fr 130px 130px 100px; gap:8px; padding:10px 0; border-bottom:1px solid #f1f5f9; align-items:center; }
+.marks-student-row:last-child { border-bottom:none; }
+.marks-student-row input, .marks-student-row select { padding:7px 10px; font-size:13px; }
+/* DASH CHARTS for non-admin */
+.dash-chart-bar { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.dash-bar-fill { height:24px; background:var(--teal); border-radius:4px; display:flex; align-items:center; padding-left:8px; font-size:11px; color:#fff; font-weight:600; min-width:32px; transition:width 0.5s; }
+.dash-bar-label { font-size:12px; color:var(--muted); min-width:120px; }
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="login-screen">
+  <div class="login-wrap">
+    <div class="login-logo">
+      <h1>EduTrack</h1>
+      <p>Computer Institute Management</p>
+    </div>
+    <div class="login-card">
+      <div id="login-error" class="login-error">Invalid username or password.</div>
+      <div class="login-field">
+        <label>Username</label>
+        <input id="login-username" type="text" placeholder="Enter your username" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div class="login-field">
+        <label>Password</label>
+        <input id="login-password" type="password" placeholder="Enter your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="btn-login" onclick="doLogin()">Sign In</button>
+      <div class="login-hint">
+        Default credentials:<br>
+        <strong>Admin:</strong> admin / admin123 &nbsp;|&nbsp;
+        <strong>Office:</strong> office / office123<br>
+        Teacher accounts are created by the Admin in User Management.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== APP SHELL ===== -->
+<div id="app-shell">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <h1>EduTrack</h1>
+    <p>Institute Management</p>
+  </div>
+  <div class="user-info-sidebar">
+    <div class="user-avatar-sm" id="sb-avatar">?</div>
+    <div>
+      <div class="uname" id="sb-uname">—</div>
+      <div class="urole" id="sb-urole">—</div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">Front Office</div>
+  <div class="nav-item active" id="nav-dashboard" onclick="navTo('dashboard',this)">
+    <span class="icon">📊</span> Dashboard
+  </div>
+  <div class="nav-item" id="nav-admission" onclick="navTo('admission',this)">
+    <span class="icon">📝</span> Student Admission
+  </div>
+  <div class="nav-item" id="nav-students" onclick="navTo('students',this)">
+    <span class="icon">👥</span> Student Records
+  </div>
+  <div class="nav-item" id="nav-fees" onclick="navTo('fees',this)">
+    <span class="icon">💳</span> Fees & Payments
+  </div>
+  <div class="nav-item" id="nav-receipt" onclick="navTo('receipt',this)">
+    <span class="icon">🧾</span> Payment Receipt
+  </div>
+
+  <div class="sidebar-section">Class Management</div>
+  <div class="nav-item" id="nav-attendance" onclick="navTo('attendance',this)">
+    <span class="icon">✅</span> Attendance Entry
+  </div>
+  <div class="nav-item" id="nav-attendance-report" onclick="navTo('attendance-report',this)">
+    <span class="icon">📈</span> Attendance Report
+  </div>
+  <div class="nav-item" id="nav-student-dashboard" onclick="navTo('student-dashboard',this)">
+    <span class="icon">🎓</span> Student Dashboard
+  </div>
+
+  <div class="sidebar-section">Class Management</div>
+  <div class="nav-item" id="nav-marks" onclick="navTo('marks',this)">
+    <span class="icon">📋</span> Marks Entry
+  </div>
+
+  <div class="sidebar-section" id="admin-section">Admin</div>
+  <div class="nav-item" id="nav-master" onclick="navTo('master',this)">
+    <span class="icon">🗂️</span> Master Data
+  </div>
+  <div class="nav-item" id="nav-salary" onclick="navTo('salary',this)">
+    <span class="icon">💰</span> Staff Salary
+  </div>
+  <div class="nav-item" id="nav-users" onclick="navTo('users',this)">
+    <span class="icon">👤</span> User Management
+  </div>
+  <div class="nav-item" id="nav-settings" onclick="navTo('settings',this)">
+    <span class="icon">⚙️</span> Configuration
+  </div>
+
+  <div class="sidebar-logout" onclick="doLogout()">
+    <span>🚪</span> Sign Out
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar no-print">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="hamburger" id="hamburger-btn" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+      </div>
+      <h2 id="page-title">Dashboard</h2>
+    </div>
+    <div class="topbar-right">
+      <span style="font-size:13px;color:var(--muted);" id="current-date"></span>
+      <span id="topbar-role-badge" class="role-badge admin">Admin</span>
+      <span id="topbar-uname" style="font-size:13px;font-weight:500;">—</span>
+    </div>
+  </div>
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+  <div id="readonly-banner" class="readonly-banner">
+    ✏️ You can enter new data freely. <strong>Editing or deleting existing records</strong> is restricted to Admin only.
+  </div>
+
+  <div class="content">
+    <div id="global-alert" style="display:none;"></div>
+
+    <!-- ===== DASHBOARD ===== -->
+    <div id="page-dashboard" class="page active">
+      <!-- Admin stats row -->
+      <div id="admin-stats-row">
+        <div class="stats-grid">
+          <div class="stat-card teal"><div class="stat-label">Total Students</div><div class="stat-value" id="stat-students">0</div><div class="stat-sub">Enrolled</div></div>
+          <div class="stat-card amber" id="dash-fees-collected-card"><div class="stat-label">Fees Collected</div><div class="stat-value" id="stat-fees">₹0</div><div class="stat-sub">Total</div></div>
+          <div class="stat-card green"><div class="stat-label">Avg Attendance</div><div class="stat-value" id="stat-att">0%</div><div class="stat-sub">Overall</div></div>
+          <div class="stat-card red" id="dash-fees-pending-card"><div class="stat-label">Pending Fees</div><div class="stat-value" id="stat-pending">₹0</div><div class="stat-sub">Outstanding</div></div>
+        </div>
+        <!-- UPCOMING DUE (admin + office) -->
+        <div class="card" id="today-due-card">
+          <div class="card-header">
+            <div class="card-title"><span class="icon">⚠️</span> Upcoming Fee Due <span style="font-size:12px;font-weight:400;color:var(--muted);">(Next 5 Days)</span></div>
+            <div id="today-due-total" style="font-size:14px;font-weight:700;color:var(--red);"></div>
+          </div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Roll</th><th>Student</th><th>Course</th><th>Balance Due</th><th>Due Date</th><th>Status</th><th>Edit Due Date</th></tr></thead>
+            <tbody id="today-due-body"></tbody>
+          </table></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><span class="icon">📊</span> Course Enrollment</div></div>
+            <div id="course-chart"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title"><span class="icon">🕐</span> Recent Admissions</div></div>
+            <div id="recent-admissions"><p style="color:var(--muted);font-size:13px;">No admissions yet.</p></div>
+          </div>
+        </div>
+      </div>
+      <!-- Teacher / Office restricted stats row -->
+      <div id="restricted-stats-row" style="display:none;">
+        <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);">
+          <div class="stat-card teal"><div class="stat-label">Total Students</div><div class="stat-value" id="stat-students-r">0</div><div class="stat-sub">Enrolled</div></div>
+          <div class="stat-card green"><div class="stat-label">Avg Attendance</div><div class="stat-value" id="stat-att-r">0%</div><div class="stat-sub">Overall</div></div>
+          <div class="stat-card amber"><div class="stat-label">Active Batches</div><div class="stat-value" id="stat-batches-r">0</div><div class="stat-sub">Running</div></div>
+        </div>
+        <!-- UPCOMING DUE (office view) -->
+        <div class="card" id="today-due-card-r" style="display:none;">
+          <div class="card-header">
+            <div class="card-title"><span class="icon">⚠️</span> Upcoming Fee Due <span style="font-size:12px;font-weight:400;color:var(--muted);">(Next 5 Days)</span></div>
+            <div id="today-due-total-r" style="font-size:14px;font-weight:700;color:var(--red);"></div>
+          </div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Roll</th><th>Student</th><th>Course</th><th>Balance Due</th><th>Due Date</th><th>Status</th><th>Edit Due Date</th></tr></thead>
+            <tbody id="today-due-body-r"></tbody>
+          </table></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><span class="icon">📚</span> Students per Course</div></div>
+            <div id="course-chart-r"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title"><span class="icon">🕐</span> Students per Batch</div></div>
+            <div id="batch-chart-r"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ADMISSION ===== -->
+    <div id="page-admission" class="page">
+      <p class="section-desc">Register a new student. Data saved to Google Sheets automatically.</p>
+      <div id="admission-alert"></div>
+      <div class="card">
+        <div class="card-header"><div class="card-title"><span class="icon">👤</span> Personal Information</div></div>
+        <div class="form-grid">
+          <div class="form-group"><label>First Name <span class="required">*</span></label><input id="adm-fname" type="text" placeholder="First name"></div>
+          <div class="form-group"><label>Last Name <span class="required">*</span></label><input id="adm-lname" type="text" placeholder="Last name"></div>
+          <div class="form-group"><label>Date of Birth <span class="required">*</span></label><input id="adm-dob" type="date"></div>
+          <div class="form-group"><label>Gender <span class="required">*</span></label><select id="adm-gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+          <div class="form-group"><label>Mobile <span class="required">*</span></label><input id="adm-mobile" type="tel" placeholder="10-digit number"></div>
+          <div class="form-group"><label>Email</label><input id="adm-email" type="email" placeholder="student@email.com"></div>
+          <div class="form-group full"><label>Address <span class="required">*</span></label><textarea id="adm-address" placeholder="Full address"></textarea></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title"><span class="icon">🎓</span> Course & Batch</div></div>
+        <div class="form-grid">
+          <div class="form-group"><label>Course <span class="required">*</span></label><select id="adm-course"><option value="">Select course</option><option>Tally with GST</option><option>MS Office</option><option>DTP (Desktop Publishing)</option><option>Programming in Python</option><option>Web Design</option><option>Hardware & Networking</option><option>Digital Marketing</option><option>AutoCAD</option></select></div>
+          <div class="form-group"><label>Batch <span class="required">*</span></label><select id="adm-batch"><option value="">Select batch</option><option>Morning (8:00 AM - 10:00 AM)</option><option>Forenoon (10:00 AM - 12:00 PM)</option><option>Afternoon (1:00 PM - 3:00 PM)</option><option>Evening (5:00 PM - 7:00 PM)</option></select></div>
+          <div class="form-group"><label>Admission Date <span class="required">*</span></label><input id="adm-date" type="date" onchange="autoSetDueDate()"></div>
+          <div class="form-group"><label>Fee Due Date <span class="required">*</span></label><input id="adm-due-date" type="date" placeholder="YYYY-MM-DD"><small style="color:var(--muted);font-size:11px;">Auto-set from admission date. Editable.</small></div>
+          <div class="form-group"><label>Duration (Months)</label><select id="adm-duration"><option>1</option><option>2</option><option>3</option><option>6</option><option>12</option></select></div>
+          <div class="form-group"><label>Total Fees (₹) <span class="required">*</span></label><input id="adm-totalfees" type="number" placeholder="0"></div>
+          <div class="form-group"><label>Concession (₹)</label><input id="adm-concession" type="number" placeholder="0" value="0"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title"><span class="icon">📋</span> Guardian Details</div></div>
+        <div class="form-grid">
+          <div class="form-group"><label>Guardian Name</label><input id="adm-guardian" type="text" placeholder="Father / Guardian"></div>
+          <div class="form-group"><label>Guardian Mobile</label><input id="adm-gmobile" type="tel" placeholder="Guardian mobile"></div>
+          <div class="form-group"><label>Qualification</label><input id="adm-qual" type="text" placeholder="Student qualification"></div>
+          <div class="form-group"><label>ID Proof</label><select id="adm-idtype"><option value="">Select</option><option>Aadhaar Card</option><option>Driving Licence</option><option>Voter ID</option><option>Passport</option></select></div>
+          <div class="form-group full"><label>Remarks</label><textarea id="adm-remarks" placeholder="Additional remarks..." style="min-height:60px;"></textarea></div>
+        </div>
+      </div>
+      <div class="action-bar" id="adm-actions">
+        <button class="btn btn-outline" onclick="clearAdmissionForm()">Clear</button>
+        <button class="btn btn-teal" onclick="submitAdmission()" id="adm-submit-btn"><span id="adm-btn-text">💾 Save to Google Sheets</span></button>
+      </div>
+    </div>
+
+    <!-- ===== STUDENTS ===== -->
+    <div id="page-students" class="page">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><span class="icon">👥</span> All Students</div>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="student-search" placeholder="Search name or ID..." style="width:200px;" oninput="filterStudents()">
+            <select id="student-filter-course" onchange="filterStudents()" style="width:160px;">
+              <option value="">All Courses</option>
+              <option>Tally with GST</option><option>MS Office</option><option>DTP (Desktop Publishing)</option>
+              <option>Programming in Python</option><option>Web Design</option><option>Hardware & Networking</option>
+              <option>Digital Marketing</option><option>AutoCAD</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Roll No</th><th>Name</th><th>Course</th><th>Batch</th><th>Mobile</th><th>Fees Status</th><th>Actions</th></tr></thead>
+            <tbody id="students-table-body"><tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px;">No students admitted yet</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== FEES ===== -->
+    <div id="page-fees" class="page">
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('fees','collect',this)">Collect Fee</div>
+        <div class="tab" onclick="switchTab('fees','history',this)">Payment History</div>
+      </div>
+      <div id="fees-tab-collect">
+        <div id="fees-alert"></div>
+        <div class="card">
+          <div class="card-header"><div class="card-title"><span class="icon">💳</span> Fee Collection</div></div>
+          <div class="form-grid">
+            <div class="form-group"><label>Student Roll No / Name <span class="required">*</span></label><input id="fee-search" type="text" placeholder="Type roll no or name..." oninput="searchStudentForFee()"></div>
+            <div class="form-group"><label>Payment Date <span class="required">*</span></label><input id="fee-date" type="date"></div>
+          </div>
+          <div id="fee-student-info" style="display:none;background:#f8fafd;border-radius:10px;padding:16px;margin-top:12px;">
+            <div class="form-grid-3">
+              <div><div class="stat-label">Student</div><div id="fee-sname" style="font-weight:600;"></div></div>
+              <div><div class="stat-label">Course</div><div id="fee-scourse" style="font-weight:600;"></div></div>
+              <div><div class="stat-label">Total Fees</div><div id="fee-stotal" style="font-weight:600;"></div></div>
+              <div><div class="stat-label">Paid</div><div id="fee-spaid" style="font-weight:600;color:var(--green);"></div></div>
+              <div><div class="stat-label">Balance</div><div id="fee-sbalance" style="font-weight:600;color:var(--red);"></div></div>
+            </div>
+          </div>
+          <div id="fee-payment-form" style="display:none;margin-top:16px;">
+            <div class="divider"></div>
+            <div class="form-grid">
+              <div class="form-group"><label>Amount (₹) <span class="required">*</span></label><input id="fee-amount" type="number" placeholder="Enter amount"></div>
+              <div class="form-group"><label>Payment Mode <span class="required">*</span></label><select id="fee-mode"><option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Cheque</option></select></div>
+              <div class="form-group"><label>Reference No</label><input id="fee-ref" type="text" placeholder="UPI / cheque ref"></div>
+              <div class="form-group"><label>Remarks</label><input id="fee-remarks" type="text" placeholder="Optional"></div>
+            </div>
+            <div class="action-bar" id="fee-actions">
+              <button class="btn btn-teal" onclick="collectFee()" id="fee-collect-btn">💾 Record Payment</button>
+              <button class="btn btn-outline" onclick="goToReceipt()">🖨️ Receipt</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="fees-tab-history" style="display:none;">
+        <div class="card">
+          <div class="card-header"><div class="card-title"><span class="icon">📋</span> Payment History</div></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Receipt No</th><th>Date</th><th>Student</th><th>Course</th><th>Amount</th><th>Mode</th><th>Action</th></tr></thead>
+              <tbody id="payments-table-body"><tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px;">No payments recorded yet</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== RECEIPT ===== -->
+    <div id="page-receipt" class="page">
+      <div class="no-print" style="margin-bottom:20px;display:flex;gap:10px;">
+        <select id="receipt-select" onchange="loadReceipt()" style="width:300px;"><option value="">— Select Receipt —</option></select>
+        <button class="btn btn-primary" onclick="window.print()">🖨️ Print Receipt</button>
+      </div>
+      <div class="receipt" id="receipt-content">
+        <div class="receipt-header"><h2 id="receipt-inst-name">EduTrack Institute</h2><p>Payment Receipt</p></div>
+        <div class="receipt-body" id="receipt-body"><p style="color:var(--muted);text-align:center;padding:20px 0;">Select a receipt above</p></div>
+        <div class="receipt-footer" id="receipt-footer-text"><p>Thank you. This is a computer generated receipt.</p></div>
+      </div>
+    </div>
+
+    <!-- ===== ATTENDANCE ===== -->
+    <div id="page-attendance" class="page">
+      <div id="att-alert"></div>
+      <div class="card">
+        <div class="card-header"><div class="card-title"><span class="icon">📅</span> Session Details</div></div>
+        <div class="form-grid-3">
+          <div class="form-group"><label>Date</label><input id="att-date" type="date" readonly style="background:#f8fafd;"></div>
+          <div class="form-group"><label>Batch <span class="required">*</span></label>
+            <select id="att-batch" onchange="loadAttStudents()">
+              <option value="">Select batch</option>
+              <option>Morning (8:00 AM - 10:00 AM)</option><option>Forenoon (10:00 AM - 12:00 PM)</option>
+              <option>Afternoon (1:00 PM - 3:00 PM)</option><option>Evening (5:00 PM - 7:00 PM)</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Course <span class="required">*</span></label>
+            <select id="att-course" onchange="loadAttStudents()">
+              <option value="">Select course</option>
+              <option>Tally with GST</option><option>MS Office</option><option>DTP (Desktop Publishing)</option>
+              <option>Programming in Python</option><option>Web Design</option><option>Hardware & Networking</option>
+              <option>Digital Marketing</option><option>AutoCAD</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="card" id="att-student-list" style="display:none;">
+        <div class="card-header">
+          <div class="card-title"><span class="icon">📋</span> Student List</div>
+          <div style="font-size:12px;color:var(--muted);">Mark Present / Absent</div>
+        </div>
+        <div style="display:grid;grid-template-columns:60px 1fr 100px 1fr 1fr;gap:8px;padding:8px 0;border-bottom:1.5px solid var(--border);font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">
+          <span>Roll</span><span>Name</span><span>Status</span><span>Topic Covered</span><span>Software Used</span>
+        </div>
+        <div id="att-rows"></div>
+        <div class="action-bar" style="margin-top:16px;" id="att-actions">
+          <button class="btn btn-outline" onclick="markAllPresent()">✓ All Present</button>
+          <button class="btn btn-teal" onclick="submitAttendance()" id="att-submit-btn">💾 Submit Attendance</button>
+        </div>
+      </div>
+      <div id="att-empty" style="display:none;">
+        <div class="card" style="text-align:center;padding:40px;"><div style="font-size:40px;margin-bottom:12px;">🎓</div><p style="color:var(--muted);">No students for this batch and course.</p></div>
+      </div>
+    </div>
+
+    <!-- ===== ATTENDANCE REPORT ===== -->
+    <div id="page-attendance-report" class="page">
+      <div class="card">
+        <div class="card-header"><div class="card-title"><span class="icon">🔍</span> Filter</div></div>
+        <div class="form-grid">
+          <div class="form-group"><label>Course</label><select id="ar-course"><option value="">All Courses</option><option>Tally with GST</option><option>MS Office</option><option>DTP (Desktop Publishing)</option><option>Programming in Python</option><option>Web Design</option><option>Hardware & Networking</option><option>Digital Marketing</option><option>AutoCAD</option></select></div>
+          <div class="form-group"><label>Batch</label><select id="ar-batch"><option value="">All Batches</option><option>Morning (8:00 AM - 10:00 AM)</option><option>Forenoon (10:00 AM - 12:00 PM)</option><option>Afternoon (1:00 PM - 3:00 PM)</option><option>Evening (5:00 PM - 7:00 PM)</option></select></div>
+          <div class="form-group"><label>From Date</label><input id="ar-from" type="date"></div>
+          <div class="form-group"><label>To Date</label><input id="ar-to" type="date"></div>
+        </div>
+        <div class="action-bar"><button class="btn btn-primary" onclick="generateAttReport()">Generate Report</button></div>
+      </div>
+      <div class="card" id="att-report-output" style="display:none;">
+        <div class="card-header">
+          <div class="card-title"><span class="icon">📊</span> Attendance Report</div>
+          <button class="btn btn-outline no-print" onclick="window.print()" style="padding:6px 14px;font-size:12px;">🖨️ Print</button>
+        </div>
+        <div class="table-wrap">
+          <table><thead><tr><th>Date</th><th>Roll No</th><th>Student</th><th>Course</th><th>Batch</th><th>Status</th><th>Topic</th><th>Software</th></tr></thead>
+          <tbody id="att-report-body"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== STUDENT DASHBOARD ===== -->
+    <div id="page-student-dashboard" class="page">
+      <div class="card">
+        <div class="card-header"><div class="card-title"><span class="icon">🔍</span> Student Lookup</div></div>
+        <div class="form-grid">
+          <div class="form-group"><label>Roll No / Name</label><input id="sd-search" type="text" placeholder="Enter roll no or name..."></div>
+          <div class="form-group" style="justify-content:flex-end;padding-top:20px;"><button class="btn btn-primary" onclick="loadStudentDashboard()">View Dashboard</button></div>
+        </div>
+      </div>
+      <div id="sd-content" style="display:none;">
+        <div class="card">
+          <div style="display:flex;gap:20px;align-items:flex-start;">
+            <div style="width:64px;height:64px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--teal-light);font-weight:700;flex-shrink:0;" id="sd-avatar">?</div>
+            <div style="flex:1;">
+              <div style="font-size:20px;font-weight:700;" id="sd-name"></div>
+              <div style="color:var(--muted);font-size:14px;margin-top:2px;" id="sd-course"></div>
+              <div style="display:flex;gap:24px;margin-top:12px;flex-wrap:wrap;">
+                <div><div class="stat-label">Roll No</div><div style="font-weight:600;" id="sd-roll"></div></div>
+                <div><div class="stat-label">Batch</div><div style="font-weight:600;" id="sd-batch"></div></div>
+                <div><div class="stat-label">Admitted</div><div style="font-weight:600;" id="sd-admitted"></div></div>
+                <div><div class="stat-label">Mobile</div><div style="font-weight:600;" id="sd-mobile"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Stats visible to all roles (fee cards hidden for teacher) -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;" id="sd-stats-all">
+          <div class="stat-card teal"><div class="stat-label">Attendance</div><div class="stat-value" id="sd-att-pct">0%</div><div class="stat-sub" id="sd-att-days"></div></div>
+          <div class="stat-card green" id="sd-fees-paid-card"><div class="stat-label">Fees Paid</div><div class="stat-value" id="sd-fees-paid">₹0</div><div class="stat-sub" id="sd-fees-total"></div></div>
+          <div class="stat-card amber" id="sd-fees-balance-card"><div class="stat-label">Balance Due</div><div class="stat-value" id="sd-fees-balance">₹0</div><div class="stat-sub">Outstanding</div></div>
+        </div>
+        <!-- Course progress (teacher view) -->
+        <div class="card" id="sd-course-progress" style="display:none;">
+          <div class="card-header"><div class="card-title"><span class="icon">📚</span> Course Progress</div></div>
+          <div id="sd-progress-body" style="padding:4px 0;"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title"><span class="icon">📅</span> Attendance Log</div></div>
+          <div class="table-wrap"><table><thead><tr><th>Date</th><th>Status</th><th>Topic</th><th>Software</th></tr></thead><tbody id="sd-att-log"></tbody></table></div>
+        </div>
+        <!-- Payment history hidden for teacher -->
+        <div class="card" id="sd-payment-card">
+          <div class="card-header"><div class="card-title"><span class="icon">💳</span> Payment History</div></div>
+          <div class="table-wrap"><table><thead><tr><th>Receipt</th><th>Date</th><th>Amount</th><th>Mode</th><th>Balance After</th></tr></thead><tbody id="sd-pay-log"></tbody></table></div>
+        </div>
+        <!-- Marks card — all roles see it -->
+        <div class="card" id="sd-marks-card">
+          <div class="card-header"><div class="card-title"><span class="icon">🏆</span> Marks & Grades</div></div>
+          <div class="table-wrap"><table><thead><tr><th>Subject</th><th>Max Marks</th><th>Obtained</th><th>%</th><th>Grade</th><th>Entered By</th></tr></thead><tbody id="sd-marks-log"></tbody></table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== USER MANAGEMENT (Admin only) ===== -->
+    <div id="page-users" class="page">
+      <div id="users-alert"></div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><span class="icon">👥</span> System Users</div>
+          <button class="btn btn-teal" onclick="openAddUserModal()" style="padding:7px 16px;font-size:13px;">+ Add User</button>
+        </div>
+        <div id="users-list"></div>
+      </div>
+    </div>
+
+    <!-- ===== MARKS ENTRY ===== -->
+    <div id="page-marks" class="page">
+      <div id="marks-alert"></div>
+      <div class="card">
+        <div class="card-header"><div class="card-title"><span class="icon">📅</span> Session</div></div>
+        <div class="form-grid-3">
+          <div class="form-group"><label>Batch <span class="required">*</span></label>
+            <select id="mk-batch" onchange="loadMarksStudents()">
+              <option value="">Select batch</option>
+              <option>Morning (8:00 AM - 10:00 AM)</option><option>Forenoon (10:00 AM - 12:00 PM)</option>
+              <option>Afternoon (1:00 PM - 3:00 PM)</option><option>Evening (5:00 PM - 7:00 PM)</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Course <span class="required">*</span></label>
+            <select id="mk-course" onchange="loadMarksStudents()">
+              <option value="">Select course</option>
+              <option>Tally with GST</option><option>MS Office</option><option>DTP (Desktop Publishing)</option>
+              <option>Programming in Python</option><option>Web Design</option><option>Hardware & Networking</option>
+              <option>Digital Marketing</option><option>AutoCAD</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Subject / Exam Name <span class="required">*</span></label>
+            <input id="mk-subject" type="text" placeholder="e.g. Unit Test 1, Final Exam">
+          </div>
+        </div>
+      </div>
+      <div class="card" id="marks-list-card" style="display:none;">
+        <div class="card-header">
+          <div class="card-title"><span class="icon">📋</span> Enter Marks</div>
+          <div style="font-size:12px;color:var(--muted);">Enter marks obtained for each student</div>
+        </div>
+        <div style="display:grid;grid-template-columns:60px 1fr 130px 130px 100px;gap:8px;padding:8px 0;border-bottom:1.5px solid var(--border);font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">
+          <span>Roll</span><span>Student Name</span><span>Max Marks</span><span>Marks Obtained</span><span>Grade</span>
+        </div>
+        <div id="marks-rows"></div>
+        <div class="action-bar" style="margin-top:16px;">
+          <button class="btn btn-outline" onclick="autoGrade()">🎯 Auto Grade</button>
+          <button class="btn btn-teal" onclick="submitMarks()" id="marks-submit-btn">💾 Save Marks</button>
+        </div>
+      </div>
+      <div id="marks-empty" style="display:none;">
+        <div class="card" style="text-align:center;padding:40px;"><div style="font-size:40px;margin-bottom:12px;">📚</div><p style="color:var(--muted);">No students for this batch and course.</p></div>
+      </div>
+    </div>
+
+    <!-- ===== MASTER DATA (Admin only) ===== -->
+    <div id="page-master" class="page">
+      <div id="master-alert"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;">
+
+        <!-- COURSES -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span class="icon">📚</span> Courses</div>
+            <button class="btn btn-teal" onclick="openMasterModal('course')" style="padding:6px 12px;font-size:12px;">+ Add</button>
+          </div>
+          <div id="master-courses-list"></div>
+        </div>
+
+        <!-- BATCHES -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span class="icon">🕐</span> Batches</div>
+            <button class="btn btn-teal" onclick="openMasterModal('batch')" style="padding:6px 12px;font-size:12px;">+ Add</button>
+          </div>
+          <div id="master-batches-list"></div>
+        </div>
+
+        <!-- STAFF -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span class="icon">👤</span> Staff List</div>
+            <button class="btn btn-teal" onclick="openMasterModal('staff')" style="padding:6px 12px;font-size:12px;">+ Add</button>
+          </div>
+          <div id="master-staff-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SALARY (Admin only) ===== -->
+    <div id="page-salary" class="page">
+      <div id="salary-alert"></div>
+      <div class="card">
+        <div class="card-header"><div class="card-title"><span class="icon">👤</span> Select Staff</div></div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Staff Member <span class="required">*</span></label>
+            <select id="sal-staff" onchange="loadStaffSalary()">
+              <option value="">— Select Staff —</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Month <span class="required">*</span></label>
+            <input id="sal-month" type="month">
+          </div>
+        </div>
+      </div>
+
+      <div id="salary-form-wrap" style="display:none;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:20px;">
+          <div class="salary-card">
+            <div class="stat-label">Basic Salary</div>
+            <div class="stat-value" id="sal-basic-display">₹0</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px;" id="sal-per-day-display"></div>
+          </div>
+          <div class="salary-card">
+            <div class="stat-label">Advance Taken</div>
+            <div class="stat-value" id="sal-advance-display">₹0</div>
+          </div>
+          <div class="net-pay-card">
+            <div class="stat-label">Net Pay</div>
+            <div class="stat-value" id="sal-net-display">₹0</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title"><span class="icon">📅</span> Attendance & Working Details</div></div>
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label>Working Days in Month</label>
+              <input id="sal-working-days" type="number" placeholder="26" min="1" max="31" oninput="calcSalary()">
+            </div>
+            <div class="form-group">
+              <label>Days Present</label>
+              <input id="sal-present-days" type="number" placeholder="0" min="0" oninput="calcSalary()">
+            </div>
+            <div class="form-group">
+              <label>Leave Days (LOP)</label>
+              <input id="sal-leave-days" type="number" placeholder="0" min="0" value="0" oninput="calcSalary()">
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title"><span class="icon">⏰</span> Overtime</div></div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Overtime Hours</label>
+              <input id="sal-ot-hours" type="number" placeholder="0" min="0" step="0.5" value="0" oninput="calcSalary()">
+            </div>
+            <div class="form-group">
+              <label>Overtime Days</label>
+              <input id="sal-ot-days" type="number" placeholder="0" min="0" value="0" oninput="calcSalary()">
+            </div>
+            <div class="form-group">
+              <label>Overtime Rate (₹/hr)</label>
+              <input id="sal-ot-rate" type="number" placeholder="0" min="0" value="0" oninput="calcSalary()">
+            </div>
+            <div class="form-group">
+              <label>Overtime Amount</label>
+              <input id="sal-ot-amount" type="number" placeholder="Auto-calculated" readonly style="background:#f8fafd;">
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title"><span class="icon">💳</span> Deductions & Advance</div></div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Advance Salary Paid (₹)</label>
+              <input id="sal-advance" type="number" placeholder="0" min="0" value="0" oninput="calcSalary()">
+            </div>
+            <div class="form-group">
+              <label>Other Deductions (₹)</label>
+              <input id="sal-deductions" type="number" placeholder="0" min="0" value="0" oninput="calcSalary()">
+            </div>
+            <div class="form-group">
+              <label>Bonus / Allowance (₹)</label>
+              <input id="sal-bonus" type="number" placeholder="0" min="0" value="0" oninput="calcSalary()">
+            </div>
+            <div class="form-group">
+              <label>Remarks</label>
+              <input id="sal-remarks" type="text" placeholder="Optional notes">
+            </div>
+          </div>
+        </div>
+
+        <!-- Salary Summary -->
+        <div class="card" id="salary-summary-card">
+          <div class="card-header"><div class="card-title"><span class="icon">🧮</span> Salary Summary</div></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" id="salary-breakdown"></div>
+          <div style="margin-top:16px;padding:16px;background:var(--navy);border-radius:10px;display:flex;justify-content:space-between;align-items:center;">
+            <span style="color:rgba(255,255,255,0.7);font-weight:600;font-size:15px;">NET PAY</span>
+            <span style="color:var(--teal-light);font-size:24px;font-weight:700;" id="sal-net-big">₹0</span>
+          </div>
+        </div>
+
+        <div class="action-bar">
+          <button class="btn btn-outline" onclick="viewSalaryHistory()">📋 View History</button>
+          <button class="btn btn-teal" onclick="saveSalary()" id="sal-save-btn">💾 Save Salary Record</button>
+        </div>
+      </div>
+
+      <!-- Salary History -->
+      <div class="card" id="salary-history-card" style="display:none;">
+        <div class="card-header">
+          <div class="card-title"><span class="icon">📊</span> Salary History</div>
+          <button class="btn btn-outline" onclick="document.getElementById('salary-history-card').style.display='none'" style="padding:5px 12px;font-size:12px;">Close</button>
+        </div>
+        <div class="table-wrap">
+          <table><thead><tr><th>Month</th><th>Staff</th><th>Basic</th><th>Present Days</th><th>OT</th><th>Advance</th><th>Net Pay</th><th>Action</th></tr></thead>
+          <tbody id="salary-history-body"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SETTINGS ===== -->
+    <div id="page-settings" class="page">
+      <div class="card">
+        <div class="card-header"><div class="card-title"><span class="icon">🔗</span> Google Sheets Integration</div></div>
+        <div class="alert alert-info">ℹ️ Deploy a Google Apps Script as a Web App and paste the URL below.</div>
+        <div class="form-group" style="max-width:600px;">
+          <label>Web App URL <span class="required">*</span></label>
+          <input id="gs-url" type="url" placeholder="https://script.google.com/macros/s/.../exec">
+        </div>
+        <div class="form-group" style="max-width:600px;margin-top:14px;">
+          <label>Institute Name</label>
+          <input id="gs-inst-name" type="text" placeholder="EduTrack Computer Institute">
+        </div>
+        <div class="form-group" style="max-width:600px;margin-top:14px;">
+          <label>Institute Contact / Address</label>
+          <input id="gs-inst-contact" type="text" placeholder="Phone / Email / Address">
+        </div>
+        <div class="action-bar" style="max-width:600px;" id="settings-actions">
+          <button class="btn btn-teal" onclick="saveSettings()">💾 Save Settings</button>
+          <button class="btn btn-outline" onclick="testConnection()">🔌 Test Connection</button>
+        </div>
+        <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border);">
+          <div class="card-title" style="margin-bottom:12px;"><span class="icon">👥</span> Sync User Accounts to Google Sheets</div>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Push all user accounts (teachers, office staff) to a Users sheet in your connected Google Sheet. This keeps login credentials backed up in the cloud.</p>
+          <button class="btn btn-primary" onclick="syncUsersToSheets()" id="sync-users-btn">☁️ Sync Users to Sheets</button>
+          <span id="sync-users-status" style="font-size:12px;margin-left:12px;color:var(--muted);"></span>
+        </div>
+      </div>
+
+      <!-- OFFLINE / EXCEL section -->
+      <div class="card">
+        <div class="card-header"><div class="card-title"><span class="icon">📊</span> Offline Mode — Export to Excel</div></div>
+        <p class="section-desc">Download all data as an Excel (.xlsx) file for offline backup or use without internet. All modules: Students, Payments, Attendance, Marks, Salary.</p>
+        <div class="form-grid" style="max-width:600px;margin-bottom:16px;">
+          <div class="form-group">
+            <label>Export Filename</label>
+            <input id="excel-filename" type="text" placeholder="EduTrack_Data" value="EduTrack_Data">
+          </div>
+          <div class="form-group">
+            <label>Include Sheets</label>
+            <select id="excel-scope">
+              <option value="all">All Data</option>
+              <option value="students">Students Only</option>
+              <option value="payments">Payments Only</option>
+              <option value="attendance">Attendance Only</option>
+              <option value="marks">Marks Only</option>
+              <option value="salary">Salary Only</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-success" onclick="exportToExcel()">⬇️ Download Excel File</button>
+          <button class="btn btn-outline" onclick="document.getElementById('excel-import-input').click()">⬆️ Import from Excel</button>
+          <input type="file" id="excel-import-input" accept=".xlsx,.csv" style="display:none;" onchange="importFromExcel(event)">
+        </div>
+        <div id="excel-status" style="margin-top:12px;"></div>
+        <div class="alert alert-info" style="margin-top:16px;">
+          💡 <strong>Offline tip:</strong> Save this HTML file to your computer. It works completely offline using your browser — no internet needed. Export to Excel regularly for backup. Re-import Excel to restore data on any device.
+        </div>
+      </div>
+      <!-- Google Sheets PULL section -->
+      <div class="card" id="sheets-pull-card">
+        <div class="card-header"><div class="card-title"><span class="icon">🔄</span> Sync Data from Google Sheets</div></div>
+        <p class="section-desc" style="margin-bottom:16px;">Pull existing student, payment and attendance data from your connected Google Sheet into this app. This overwrites local data with whatever is in the sheet.</p>
+        <div class="alert alert-warn">⚠️ This will replace all local data with data from your Google Sheet. Make sure the Web App URL is saved first.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;">
+          <button class="btn btn-teal" onclick="pullFromSheets('Students')">⬇️ Pull Students</button>
+          <button class="btn btn-teal" onclick="pullFromSheets('Payments')">⬇️ Pull Payments</button>
+          <button class="btn btn-teal" onclick="pullFromSheets('Attendance')">⬇️ Pull Attendance</button>
+          <button class="btn btn-primary" onclick="pullAllFromSheets()">⬇️ Pull All Data</button>
+        </div>
+        <div id="pull-status" style="margin-top:14px;"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title"><span class="icon">📖</span> Apps Script Setup</div></div>
+        <div style="font-size:13.5px;line-height:1.8;">
+          <p style="margin-bottom:10px;"><strong>Step 1:</strong> Create a Google Sheet. Copy the Spreadsheet ID from the URL.</p>
+          <p style="margin-bottom:10px;"><strong>Step 2:</strong> Go to <strong>Extensions → Apps Script</strong>, paste the code below, save.</p>
+          <p style="margin-bottom:10px;"><strong>Step 3:</strong> <strong>Deploy → New Deployment → Web App</strong>. Set access to <em>"Anyone"</em>. Copy the URL.</p>
+          <p style="margin-bottom:14px;"><strong>Step 4:</strong> Paste the URL in the field above and save.</p>
+          <div style="background:#1e293b;color:#e2e8f0;border-radius:8px;padding:16px;font-family:monospace;font-size:12px;overflow-x:auto;line-height:1.7;white-space:pre;">function doPost(e){
+  try{
+    const data=JSON.parse(e.postData.contents);
+    const ss=SpreadsheetApp.getActiveSpreadsheet();
+    if(data.action==='addStudent'){
+      const sh=getSheet(ss,'Students');
+      if(sh.getLastRow()===0) sh.appendRow(['Roll No','First Name','Last Name','DOB','Gender','Mobile','Email','Address','Course','Batch','Admission Date','Duration','Total Fees','Concession','Guardian','Guardian Mobile','Qualification','ID Type','Remarks','Status']);
+      const roll='ST'+String(sh.getLastRow()).padStart(4,'0');
+      sh.appendRow([roll,data.fname,data.lname,data.dob,data.gender,data.mobile,data.email,data.address,data.course,data.batch,data.admDate,data.duration,data.totalFees,data.concession,data.guardian,data.guardianMobile,data.qual,data.idType,data.remarks,'Active']);
+      return out({success:true,rollNo:roll});
+    }
+    if(data.action==='addPayment'){
+      const sh=getSheet(ss,'Payments');
+      if(sh.getLastRow()===0) sh.appendRow(['Receipt No','Date','Roll No','Student','Course','Amount','Mode','Reference','Remarks']);
+      const r='RCP'+String(Date.now()).slice(-6);
+      sh.appendRow([r,data.date,data.rollNo,data.studentName,data.course,data.amount,data.mode,data.reference,data.remarks]);
+      return out({success:true,receiptNo:r});
+    }
+    if(data.action==='addAttendance'){
+      const sh=getSheet(ss,'Attendance');
+      if(sh.getLastRow()===0) sh.appendRow(['Date','Roll No','Student','Course','Batch','Status','Topic','Software']);
+      data.records.forEach(r=>sh.appendRow([data.date,r.roll,r.name,data.course,data.batch,r.status,r.topic||'',r.software||'']));
+      return out({success:true});
+    }
+        if(data.action==='getData'){
+      const sh=ss.getSheetByName(data.sheet);
+      if(!sh) return out({success:true,data:[]});
+      const vals=sh.getDataRange().getValues();
+      const headers=vals[0]; const rows=vals.slice(1);
+      return out({success:true,data:rows.map(r=>Object.fromEntries(headers.map((h,i)=>[h,r[i]])))});
+    }
+    if(data.action==='syncUsers'){
+      const sh=getSheet(ss,'Users');
+      sh.clearContents();
+      sh.appendRow(['Name','Username','Role','Department','Mobile','Courses Assigned','Synced At']);
+      data.users.forEach(u=>sh.appendRow([u.name,u.username,u.role,u.dept||'',u.mobile||'',u.courses||'',new Date().toISOString()]));
+      return out({success:true});
+    }
+    if(data.action==='addSalary'){
+      const sh=getSheet(ss,'Salary');
+      if(sh.getLastRow()===0) sh.appendRow(['ID','Month','Staff','Basic','WorkDays','PresentDays','LeaveDays','OTHours','OTDays','OTAmount','Advance','Deductions','Bonus','GrossPay','NetPay','Remarks']);
+      sh.appendRow([data.id,data.month,data.staffName,data.basic,data.workDays,data.presentDays,data.leaveDays,data.otHours,data.otDays,data.otAmount,data.advance,data.deductions,data.bonus,data.grossPay,data.netPay,data.remarks||'']);
+      return out({success:true});
+    }
+    if(data.action==='addMarks'){
+      const sh=getSheet(ss,'Marks');
+      if(sh.getLastRow()===0) sh.appendRow(['Roll No','Student','Course','Batch','Subject','Max Marks','Obtained','Grade','Entered By','Date']);
+      data.records.forEach(r=>sh.appendRow([r.rollNo,r.studentName,r.course,r.batch,r.subject,r.maxMarks,r.obtainedMarks,r.grade,r.enteredBy,r.enteredAt||'']));
+      return out({success:true});
+    }
+    return out({success:false,error:'Unknown action'});
+  }catch(e){return out({success:false,error:e.toString()});}
+}
+function getSheet(ss,n){return ss.getSheetByName(n)||ss.insertSheet(n);}
+function out(o){return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);}
+function doGet(){return out({status:'running'});}</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+</div><!-- /app-shell -->
+
+<!-- MODAL: student detail -->
+<div class="modal-backdrop" id="student-modal">
+  <div class="modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h3 id="modal-student-name">Student Details</h3>
+      <button class="btn btn-outline" onclick="closeModal('student-modal')" style="padding:4px 12px;">✕</button>
+    </div>
+    <div id="modal-content"></div>
+    <div id="modal-edit-area" style="display:none;margin-top:16px;"></div>
+  </div>
+</div>
+
+<!-- MODAL: add/edit user -->
+<div class="modal-backdrop" id="user-modal">
+  <div class="modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <h3 id="user-modal-title">Add User</h3>
+      <button class="btn btn-outline" onclick="closeModal('user-modal')" style="padding:4px 12px;">✕</button>
+    </div>
+    <div id="user-form-alert"></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Full Name <span class="required">*</span></label><input id="uf-name" type="text" placeholder="Full name"></div>
+      <div class="form-group"><label>Username <span class="required">*</span></label><input id="uf-username" type="text" placeholder="login username (no spaces)"></div>
+      <div class="form-group"><label>Password <span class="required">*</span></label><input id="uf-password" type="password" placeholder="Set password"></div>
+      <div class="form-group"><label>Role <span class="required">*</span></label>
+        <select id="uf-role" onchange="toggleTeacherFields()">
+          <option value="office">Office Staff</option>
+          <option value="teacher">Teacher</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Subject / Department</label><input id="uf-dept" type="text" placeholder="e.g. Tally, Python"></div>
+      <div class="form-group"><label>Mobile</label><input id="uf-mobile" type="tel" placeholder="Mobile number"></div>
+      <div class="form-group full" id="uf-courses-wrap" style="display:none;">
+        <label>Courses Assigned (Teacher)</label>
+        <div id="uf-courses-check" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px;">
+          <label style="display:flex;align-items:center;gap:5px;font-weight:400;"><input type="checkbox" value="Tally with GST"> Tally with GST</label>
+          <label style="display:flex;align-items:center;gap:5px;font-weight:400;"><input type="checkbox" value="MS Office"> MS Office</label>
+          <label style="display:flex;align-items:center;gap:5px;font-weight:400;"><input type="checkbox" value="DTP (Desktop Publishing)"> DTP</label>
+          <label style="display:flex;align-items:center;gap:5px;font-weight:400;"><input type="checkbox" value="Programming in Python"> Python</label>
+          <label style="display:flex;align-items:center;gap:5px;font-weight:400;"><input type="checkbox" value="Web Design"> Web Design</label>
+          <label style="display:flex;align-items:center;gap:5px;font-weight:400;"><input type="checkbox" value="Hardware & Networking"> Hardware</label>
+          <label style="display:flex;align-items:center;gap:5px;font-weight:400;"><input type="checkbox" value="Digital Marketing"> Digital Mktg</label>
+          <label style="display:flex;align-items:center;gap:5px;font-weight:400;"><input type="checkbox" value="AutoCAD"> AutoCAD</label>
+        </div>
+      </div>
+    </div>
+    <input type="hidden" id="uf-edit-index" value="">
+    <div class="action-bar">
+      <button class="btn btn-outline" onclick="closeModal('user-modal')">Cancel</button>
+      <button class="btn btn-teal" onclick="saveUser()">💾 Save User</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: inline master data form -->
+<div class="modal-backdrop" id="inline-modal">
+  <div class="modal" style="max-width:500px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <h3 id="inline-modal-title">Add Item</h3>
+      <button class="btn btn-outline" onclick="closeModal('inline-modal')" style="padding:4px 12px;">✕</button>
+    </div>
+    <div id="inline-modal-fields"></div>
+    <div class="action-bar">
+      <button class="btn btn-outline" onclick="closeModal('inline-modal')">Cancel</button>
+      <button class="btn btn-teal" id="inline-modal-save" onclick="">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: edit student (admin only) -->
+<div class="modal-backdrop" id="edit-student-modal">
+  <div class="modal" style="max-width:580px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <h3>Edit Student Record</h3>
+      <button class="btn btn-outline" onclick="closeModal('edit-student-modal')" style="padding:4px 12px;">✕</button>
+    </div>
+    <div id="edit-student-alert"></div>
+    <div class="form-grid">
+      <div class="form-group"><label>First Name</label><input id="es-fname" type="text"></div>
+      <div class="form-group"><label>Last Name</label><input id="es-lname" type="text"></div>
+      <div class="form-group"><label>Mobile</label><input id="es-mobile" type="tel"></div>
+      <div class="form-group"><label>Email</label><input id="es-email" type="email"></div>
+      <div class="form-group"><label>Course</label><select id="es-course"><option>Tally with GST</option><option>MS Office</option><option>DTP (Desktop Publishing)</option><option>Programming in Python</option><option>Web Design</option><option>Hardware & Networking</option><option>Digital Marketing</option><option>AutoCAD</option></select></div>
+      <div class="form-group"><label>Batch</label><select id="es-batch"><option>Morning (8:00 AM - 10:00 AM)</option><option>Forenoon (10:00 AM - 12:00 PM)</option><option>Afternoon (1:00 PM - 3:00 PM)</option><option>Evening (5:00 PM - 7:00 PM)</option></select></div>
+      <div class="form-group"><label>Total Fees (₹)</label><input id="es-totalfees" type="number"></div>
+      <div class="form-group"><label>Concession (₹)</label><input id="es-concession" type="number"></div>
+      <div class="form-group"><label>Status</label><select id="es-status"><option>Active</option><option>Completed</option><option>Dropped</option></select></div>
+      <div class="form-group"><label>Remarks</label><input id="es-remarks" type="text"></div>
+    </div>
+    <input type="hidden" id="es-roll">
+    <div class="action-bar">
+      <button class="btn btn-danger" onclick="deleteStudent()" style="margin-right:auto;">🗑️ Delete</button>
+      <button class="btn btn-outline" onclick="closeModal('edit-student-modal')">Cancel</button>
+      <button class="btn btn-teal" onclick="saveStudentEdit()">💾 Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// AUTH & ROLE SYSTEM
+// ============================================================
+const DEFAULT_USERS = [
+  { name:'Administrator', username:'admin', password:'admin123', role:'admin', dept:'Management', mobile:'' },
+  { name:'Office Staff', username:'office', password:'office123', role:'office', dept:'Front Office', mobile:'' }
+];
+// Teacher accounts are created individually by Admin in User Management.
+// Each teacher logs in with their own username/password.
+
+function getUsers() {
+  const stored = localStorage.getItem('edutrack_users');
+  return stored ? JSON.parse(stored) : DEFAULT_USERS;
+}
+function saveUsers(u) { localStorage.setItem('edutrack_users', JSON.stringify(u)); }
+
+let currentUser = null;
+
+function doLogin() {
+  const uname = document.getElementById('login-username').value.trim();
+  const pass = document.getElementById('login-password').value;
+  const users = getUsers();
+  // Auto-detect role — no role selector needed
+  const user = users.find(u => u.username === uname && u.password === pass);
+  if (!user) {
+    document.getElementById('login-error').style.display = 'block';
+    return;
+  }
+  currentUser = user;
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-shell').classList.add('visible');
+  applyRoleUI();
+  refreshDashboard();
+  document.getElementById('att-date').value = todayStr();
+  document.getElementById('fee-date').value = todayStr();
+  document.getElementById('adm-date').value = todayStr();
+  document.getElementById('adm-due-date').value = todayStr();
+  document.getElementById('ar-from').value = new Date(new Date().setDate(1)).toISOString().slice(0,10);
+  document.getElementById('ar-to').value = todayStr();
+  // Close mobile sidebar on login
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('app-shell').classList.remove('visible');
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-username').value = '';
+  document.getElementById('login-password').value = '';
+  document.getElementById('login-error').style.display = 'none';
+}
+
+// Role permissions
+// canEnter = can submit new records (admission, payments, attendance)
+// canModify = can edit or delete existing records (admin only)
+const PERMISSIONS = {
+  admin:   { pages: ['dashboard','admission','students','fees','receipt','attendance','attendance-report','student-dashboard','marks','master','salary','users','settings'], canEnter: true, canModify: true },
+  office:  { pages: ['dashboard','admission','students','fees','receipt','student-dashboard'],                                                                               canEnter: true, canModify: false },
+  teacher: { pages: ['dashboard','attendance','attendance-report','student-dashboard','marks'],                                                                              canEnter: true, canModify: false }
+};
+
+function canAccess(page) {
+  if (!currentUser) return false;
+  return PERMISSIONS[currentUser.role].pages.includes(page);
+}
+function isAdmin() { return currentUser && currentUser.role === 'admin'; }
+// canEdit kept as alias so existing call-sites still work — means "can enter new data"
+function canEdit() { return currentUser && PERMISSIONS[currentUser.role].canEnter; }
+// canModify = edit / delete existing records (admin only)
+function canModify() { return currentUser && PERMISSIONS[currentUser.role].canModify; }
+
+function applyRoleUI() {
+  const role = currentUser.role;
+  const perm = PERMISSIONS[role];
+
+  // Topbar
+  const badge = document.getElementById('topbar-role-badge');
+  badge.textContent = role.charAt(0).toUpperCase() + role.slice(1);
+  badge.className = 'role-badge ' + role;
+  document.getElementById('topbar-uname').textContent = currentUser.name;
+
+  // Sidebar user info
+  document.getElementById('sb-avatar').textContent = currentUser.name.slice(0,2).toUpperCase();
+  document.getElementById('sb-uname').textContent = currentUser.name;
+  document.getElementById('sb-urole').textContent = role.toUpperCase();
+
+  // Nav items — lock inaccessible pages
+  const allPages = ['dashboard','admission','students','fees','receipt','attendance','attendance-report','student-dashboard','marks','master','salary','users','settings'];
+  allPages.forEach(p => {
+    const nav = document.getElementById('nav-' + p);
+    if (!nav) return;
+    if (perm.pages.includes(p)) {
+      nav.classList.remove('locked');
+      nav.querySelector('.lock-badge') && nav.querySelector('.lock-badge').remove();
+    } else {
+      nav.classList.add('locked');
+      if (!nav.querySelector('.lock-badge')) {
+        const lb = document.createElement('span');
+        lb.className = 'lock-badge'; lb.textContent = '🔒';
+        nav.appendChild(lb);
+      }
+    }
+  });
+
+  // Admin-only section visibility
+  document.getElementById('admin-section').style.display = isAdmin() ? '' : 'none';
+  document.getElementById('nav-users').style.display = isAdmin() ? '' : 'none';
+  document.getElementById('nav-master').style.display = isAdmin() ? '' : 'none';
+  document.getElementById('nav-salary').style.display = isAdmin() ? '' : 'none';
+  // Dashboard split: admin vs restricted
+  document.getElementById('admin-stats-row').style.display = isAdmin() ? '' : 'none';
+  document.getElementById('restricted-stats-row').style.display = isAdmin() ? 'none' : '';
+
+  // Show edit-restriction notice for non-admin users
+  const banner = document.getElementById('readonly-banner');
+  if (!canModify()) {
+    banner.classList.add('visible');
+  } else {
+    banner.classList.remove('visible');
+  }
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function navTo(page, el) {
+  if (!canAccess(page)) {
+    // Show access denied in main content instead of navigating
+    alert('Access denied. Your role (' + currentUser.role + ') does not have permission to view this page.');
+    return;
+  }
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const pageEl = document.getElementById('page-' + page);
+  if (pageEl) pageEl.classList.add('active');
+  if (el && !el.classList.contains('locked')) el.classList.add('active');
+  const titles = {
+    dashboard:'Dashboard', admission:'Student Admission', students:'Student Records',
+    fees:'Fees & Payments', receipt:'Payment Receipt', attendance:'Attendance Entry',
+    'attendance-report':'Attendance Report', 'student-dashboard':'Student Dashboard',
+    marks:'Marks Entry', master:'Master Data', salary:'Staff Salary',
+    users:'User Management', settings:'Configuration'
+  };
+  document.getElementById('page-title').textContent = titles[page] || page;
+  if (page === 'dashboard') refreshDashboard();
+  if (page === 'students') renderStudentsTable();
+  if (page === 'receipt') refreshReceiptDropdown();
+  if (page === 'settings') loadSettings();
+  if (page === 'users') renderUsersPage();
+  if (page === 'master') renderMasterData();
+  if (page === 'salary') initSalaryPage();
+}
+
+function showPage(page) {
+  const navEl = document.getElementById('nav-' + page);
+  navTo(page, navEl);
+}
+
+function todayStr() { return new Date().toISOString().slice(0,10); }
+document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-IN', {weekday:'short', year:'numeric', month:'short', day:'numeric'});
+
+// ============================================================
+// DATA STORE
+// ============================================================
+const DB = {
+  get: k => JSON.parse(localStorage.getItem('edutrack_' + k) || '[]'),
+  set: (k, v) => localStorage.setItem('edutrack_' + k, JSON.stringify(v)),
+  cfg: () => JSON.parse(localStorage.getItem('edutrack_config') || '{}'),
+  saveCfg: v => localStorage.setItem('edutrack_config', JSON.stringify(v))
+};
+
+let students = DB.get('students');
+let payments = DB.get('payments');
+let attendance = DB.get('attendance');
+let marks = DB.get('marks');
+let salaries = DB.get('salaries');
+let masterData = {
+  courses: DB.get('master_courses').length ? DB.get('master_courses') : [
+    {id:'c1',name:'Tally with GST',duration:3,fee:3500},
+    {id:'c2',name:'MS Office',duration:2,fee:2500},
+    {id:'c3',name:'DTP (Desktop Publishing)',duration:3,fee:3000},
+    {id:'c4',name:'Programming in Python',duration:6,fee:5000},
+    {id:'c5',name:'Web Design',duration:6,fee:5500},
+    {id:'c6',name:'Hardware & Networking',duration:6,fee:6000},
+    {id:'c7',name:'Digital Marketing',duration:3,fee:4000},
+    {id:'c8',name:'AutoCAD',duration:3,fee:4500}
+  ],
+  batches: DB.get('master_batches').length ? DB.get('master_batches') : [
+    {id:'b1',name:'Morning',time:'8:00 AM - 10:00 AM'},
+    {id:'b2',name:'Forenoon',time:'10:00 AM - 12:00 PM'},
+    {id:'b3',name:'Afternoon',time:'1:00 PM - 3:00 PM'},
+    {id:'b4',name:'Evening',time:'5:00 PM - 7:00 PM'}
+  ],
+  staff: DB.get('master_staff').length ? DB.get('master_staff') : []
+};
+let cfg = DB.cfg();
+
+// ============================================================
+// GOOGLE SHEETS — PUSH & PULL
+// ============================================================
+async function callSheets(data) {
+  if (!cfg.gsUrl) return { local: true };
+  try {
+    const res = await fetch(cfg.gsUrl, { method:'POST', body: JSON.stringify(data), headers:{'Content-Type':'text/plain'} });
+    return await res.json();
+  } catch(e) { return { error: e.message }; }
+}
+
+async function pullFromSheets(sheetName) {
+  if (!cfg.gsUrl) { showPullStatus('error','❌ No Web App URL configured. Save Settings first.'); return; }
+  showPullStatus('info','⏳ Pulling '+sheetName+' from Google Sheets...');
+  try {
+    const res = await fetch(cfg.gsUrl, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'getData', sheet: sheetName }),
+      headers: {'Content-Type':'text/plain'}
+    });
+    const data = await res.json();
+    if (!data.success) { showPullStatus('error','❌ '+sheetName+': '+(data.error||'Unknown error')); return; }
+    const rows = data.data || [];
+    if (sheetName === 'Students') {
+      students = rows.map(r => ({
+        rollNo: r['Roll No']||r.rollNo||r['ROLL NO']||'',
+        fname: r['First Name']||r.fname||r['FIRST NAME']||'',
+        lname: r['Last Name']||r.lname||r['LAST NAME']||'',
+        dob: r['DOB']||r.dob||'', gender: r['Gender']||r.gender||'',
+        mobile: r['Mobile']||r.mobile||'', email: r['Email']||r.email||'',
+        address: r['Address']||r.address||'', course: r['Course']||r.course||'',
+        batch: r['Batch']||r.batch||'', admDate: r['Admission Date']||r.admDate||'',
+        duration: r['Duration']||r.duration||'3',
+        totalFees: parseFloat(r['Total Fees']||r.totalFees||0),
+        concession: parseFloat(r['Concession']||r.concession||0),
+        guardian: r['Guardian']||r.guardian||'', guardianMobile: r['Guardian Mobile']||r.guardianMobile||'',
+        qual: r['Qualification']||r.qual||'', idType: r['ID Type']||r.idType||'',
+        remarks: r['Remarks']||r.remarks||'', status: r['Status']||r.status||'Active'
+      })).filter(s=>s.rollNo);
+      DB.set('students', students);
+      showPullStatus('success','✅ Students pulled: '+students.length+' records loaded.');
+    } else if (sheetName === 'Payments') {
+      payments = rows.map(r => ({
+        receiptNo: r['Receipt No']||r.receiptNo||'',
+        date: r['Date']||r.date||'',
+        rollNo: r['Roll No']||r.rollNo||'',
+        studentName: r['Student']||r.studentName||'',
+        course: r['Course']||r.course||'',
+        amount: parseFloat(r['Amount']||r.amount||0),
+        mode: r['Mode']||r.mode||'Cash',
+        reference: r['Reference']||r.reference||'',
+        remarks: r['Remarks']||r.remarks||'',
+      })).filter(p=>p.receiptNo);
+      DB.set('payments', payments);
+      showPullStatus('success','✅ Payments pulled: '+payments.length+' records loaded.');
+    } else if (sheetName === 'Attendance') {
+      attendance = rows.map(r => ({
+        date: r['Date']||r.date||'',
+        rollNo: r['Roll No']||r.rollNo||'',
+        studentName: r['Student']||r.studentName||'',
+        course: r['Course']||r.course||'',
+        batch: r['Batch']||r.batch||'',
+        status: r['Status']||r.status||'Present',
+        topic: r['Topic']||r.topic||'',
+        software: r['Software']||r.software||'',
+      })).filter(a=>a.rollNo);
+      DB.set('attendance', attendance);
+      showPullStatus('success','✅ Attendance pulled: '+attendance.length+' records loaded.');
+    }
+    refreshDashboard();
+  } catch(e) {
+    showPullStatus('error','❌ Pull failed: '+e.message+'. Ensure the Apps Script has the getData action.');
+  }
+}
+
+async function pullAllFromSheets() {
+  if (!cfg.gsUrl) { showPullStatus('error','❌ No Web App URL configured.'); return; }
+  showPullStatus('info','⏳ Pulling all data from Google Sheets...');
+  const results = [];
+  for (const sheet of ['Students','Payments','Attendance']) {
+    try {
+      const res = await fetch(cfg.gsUrl, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'getData', sheet }),
+        headers: {'Content-Type':'text/plain'}
+      });
+      const data = await res.json();
+      results.push({ sheet, ok: data.success, count: (data.data||[]).length });
+      if (data.success) {
+        if (sheet==='Students') { await pullFromSheets('Students'); }
+        else if (sheet==='Payments') { await pullFromSheets('Payments'); }
+        else if (sheet==='Attendance') { await pullFromSheets('Attendance'); }
+      }
+    } catch(e) { results.push({ sheet, ok: false, count: 0 }); }
+  }
+  const summary = results.map(r=>r.sheet+': '+(r.ok?r.count+' rows':'failed')).join(' | ');
+  showPullStatus('success','✅ Sync complete — '+summary);
+}
+
+function showPullStatus(type, msg) {
+  const el = document.getElementById('pull-status');
+  if (!el) return;
+  el.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+function saveSettings() {
+  if (!canModify()) { showAlert('global-alert','error','❌ Only Admin can change system settings.'); return; }
+  cfg = {
+    gsUrl: document.getElementById('gs-url').value.trim(),
+    instName: document.getElementById('gs-inst-name').value.trim() || 'EduTrack Institute',
+    instContact: document.getElementById('gs-inst-contact').value.trim()
+  };
+  DB.saveCfg(cfg);
+  showAlert('global-alert','success','✅ Settings saved!');
+}
+
+function loadSettings() {
+  if (cfg.gsUrl) document.getElementById('gs-url').value = cfg.gsUrl;
+  if (cfg.instName) document.getElementById('gs-inst-name').value = cfg.instName;
+  if (cfg.instContact) document.getElementById('gs-inst-contact').value = cfg.instContact;
+  if (!canModify()) {
+    ['gs-url','gs-inst-name','gs-inst-contact'].forEach(id => document.getElementById(id).disabled = true);
+    document.getElementById('settings-actions').style.display = 'none';
+  } else {
+    ['gs-url','gs-inst-name','gs-inst-contact'].forEach(id => document.getElementById(id).disabled = false);
+    document.getElementById('settings-actions').style.display = '';
+  }
+}
+
+async function testConnection() {
+  const url = document.getElementById('gs-url').value.trim();
+  if (!url) { showAlert('global-alert','error','Enter a URL first.'); return; }
+  showAlert('global-alert','info','🔌 Testing...');
+  try {
+    const res = await fetch(url);
+    showAlert('global-alert','success','✅ Connection successful!');
+  } catch(e) {
+    showAlert('global-alert','error','❌ Connection failed: ' + e.message);
+  }
+}
+
+// ============================================================
+// USER MANAGEMENT (Admin only)
+// ============================================================
+function renderUsersPage() {
+  const users = getUsers();
+  const container = document.getElementById('users-list');
+  const roleOrder = ['admin','office','teacher'];
+  const sorted = [...users].sort((a,b)=>roleOrder.indexOf(a.role)-roleOrder.indexOf(b.role));
+  let html = '';
+  let lastRole = '';
+  sorted.forEach((u) => {
+    const i = users.indexOf(u);
+    if (u.role !== lastRole) {
+      const roleLabels = {admin:'👑 Administrators',office:'🏢 Office Staff',teacher:'👩‍🏫 Teachers'};
+      html += '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:14px 0 6px;border-top:' + (lastRole?'1px solid var(--border)':'none') + '">' + (roleLabels[u.role]||u.role) + '</div>';
+      lastRole = u.role;
+    }
+    const courseTags = u.role==='teacher' && u.courses && u.courses.length
+      ? u.courses.map(co=>'<span class="chip chip-green" style="font-size:10px;padding:2px 7px;">'+co+'</span>').join(' ')
+      : '';
+    html += '<div class="user-row">'
+      + '<div class="user-avatar ua-'+u.role+'">'+u.name.slice(0,2).toUpperCase()+'</div>'
+      + '<div style="flex:1;">'
+      + '<div style="font-weight:600;font-size:14px;">'+u.name+' <span style="font-size:12px;color:var(--muted);">@'+u.username+'</span></div>'
+      + '<div style="font-size:12px;color:var(--muted);margin-top:2px;">'+(u.dept||'—')+(u.mobile?' · '+u.mobile:'')+'</div>'
+      + (courseTags ? '<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;">'+courseTags+'</div>' : '')
+      + '</div>'
+      + '<span class="chip chip-'+(u.role==='admin'?'purple':u.role==='office'?'blue':'green')+'">'+(u.role.charAt(0).toUpperCase()+u.role.slice(1))+'</span>'
+      + '<button class="btn btn-outline" onclick="openEditUserModal('+i+')" style="padding:5px 12px;font-size:12px;">Edit</button>'
+      + (u.username !== 'admin' ? '<button class="btn btn-outline" onclick="removeUser('+i+')" style="padding:5px 12px;font-size:12px;color:var(--red);border-color:var(--red);">Remove</button>' : '')
+      + '</div>';
+  });
+  container.innerHTML = html || '<p style="color:var(--muted);padding:20px;">No users found.</p>';
+}
+
+function openAddUserModal() {
+  document.getElementById('user-modal-title').textContent = 'Add User';
+  document.getElementById('uf-name').value = '';
+  document.getElementById('uf-username').value = '';
+  document.getElementById('uf-password').value = '';
+  document.getElementById('uf-role').value = 'office';
+  document.getElementById('uf-dept').value = '';
+  document.getElementById('uf-mobile').value = '';
+  document.getElementById('uf-edit-index').value = '';
+  document.getElementById('user-form-alert').innerHTML = '';
+  document.querySelectorAll('#uf-courses-check input').forEach(cb => cb.checked = false);
+  document.getElementById('uf-courses-wrap').style.display = 'none';
+  document.getElementById('user-modal').classList.add('open');
+}
+
+function openEditUserModal(i) {
+  const users = getUsers();
+  const u = users[i];
+  document.getElementById('user-modal-title').textContent = 'Edit User — ' + u.name;
+  document.getElementById('uf-name').value = u.name;
+  document.getElementById('uf-username').value = u.username;
+  document.getElementById('uf-password').value = u.password;
+  document.getElementById('uf-role').value = u.role;
+  document.getElementById('uf-dept').value = u.dept || '';
+  document.getElementById('uf-mobile').value = u.mobile || '';
+  document.getElementById('uf-edit-index').value = i;
+  document.getElementById('user-form-alert').innerHTML = '';
+  // Load assigned courses for teacher
+  document.querySelectorAll('#uf-courses-check input').forEach(cb => {
+    cb.checked = (u.courses||[]).includes(cb.value);
+  });
+  document.getElementById('uf-courses-wrap').style.display = u.role === 'teacher' ? '' : 'none';
+  document.getElementById('user-modal').classList.add('open');
+}
+
+function toggleTeacherFields() {
+  const role = document.getElementById('uf-role').value;
+  document.getElementById('uf-courses-wrap').style.display = role === 'teacher' ? '' : 'none';
+}
+
+function saveUser() {
+  const name = document.getElementById('uf-name').value.trim();
+  const username = document.getElementById('uf-username').value.trim().toLowerCase().replace(/\s+/g,'_');
+  const password = document.getElementById('uf-password').value.trim();
+  const role = document.getElementById('uf-role').value;
+  const dept = document.getElementById('uf-dept').value.trim();
+  const mobile = document.getElementById('uf-mobile').value.trim();
+  const editIdx = document.getElementById('uf-edit-index').value;
+
+  if (!name || !username || !password) {
+    document.getElementById('user-form-alert').innerHTML = '<div class="alert alert-error">All required fields must be filled.</div>';
+    return;
+  }
+
+  // Collect assigned courses for teachers
+  const courses = role === 'teacher'
+    ? [...document.querySelectorAll('#uf-courses-check input:checked')].map(cb => cb.value)
+    : [];
+
+  const users = getUsers();
+  const userData = { name, username, password, role, dept, mobile, courses };
+
+  if (editIdx !== '') {
+    userData.username = users[parseInt(editIdx)].username; // preserve username on edit
+    users[parseInt(editIdx)] = userData;
+    showAlert('users-alert','success','✅ User updated successfully.');
+  } else {
+    if (users.find(u => u.username === username)) {
+      document.getElementById('user-form-alert').innerHTML = '<div class="alert alert-error">Username already exists. Choose a different one.</div>';
+      return;
+    }
+    users.push(userData);
+    showAlert('users-alert','success','✅ ' + (role === 'teacher' ? 'Teacher' : 'User') + ' account created: @' + username);
+  }
+  saveUsers(users);
+  closeModal('user-modal');
+  renderUsersPage();
+  // Auto-sync to sheets if configured
+  if (cfg.gsUrl) {
+    const safeUsers = getUsers().map(u=>({name:u.name,username:u.username,role:u.role,dept:u.dept||'',mobile:u.mobile||'',courses:(u.courses||[]).join(', ')}));
+    callSheets({action:'syncUsers', users:safeUsers});
+  }
+}
+
+function removeUser(i) {
+  const users = getUsers();
+  if (users[i].username === 'admin') { alert('Cannot remove the primary admin.'); return; }
+  if (!confirm('Remove user "' + users[i].name + '"?')) return;
+  users.splice(i, 1);
+  saveUsers(users);
+  renderUsersPage();
+  showAlert('users-alert','success','User removed.');
+}
+
+// ============================================================
+// ADMISSION
+// ============================================================
+async function submitAdmission() {
+  const fields = {
+    fname: document.getElementById('adm-fname').value.trim(),
+    lname: document.getElementById('adm-lname').value.trim(),
+    dob: document.getElementById('adm-dob').value,
+    gender: document.getElementById('adm-gender').value,
+    mobile: document.getElementById('adm-mobile').value.trim(),
+    email: document.getElementById('adm-email').value.trim(),
+    address: document.getElementById('adm-address').value.trim(),
+    course: document.getElementById('adm-course').value,
+    batch: document.getElementById('adm-batch').value,
+    admDate: document.getElementById('adm-date').value,
+    feesDueDate: document.getElementById('adm-due-date').value,
+    duration: document.getElementById('adm-duration').value,
+    totalFees: parseFloat(document.getElementById('adm-totalfees').value) || 0,
+    concession: parseFloat(document.getElementById('adm-concession').value) || 0,
+    guardian: document.getElementById('adm-guardian').value.trim(),
+    guardianMobile: document.getElementById('adm-gmobile').value.trim(),
+    qual: document.getElementById('adm-qual').value.trim(),
+    idType: document.getElementById('adm-idtype').value,
+    remarks: document.getElementById('adm-remarks').value.trim()
+  };
+  if (!fields.fname || !fields.lname || !fields.mobile || !fields.course || !fields.batch) {
+    showAlert('admission-alert','error','❌ Fill all required fields (name, mobile, course, batch).'); return;
+  }
+  if (!/^\d{10}$/.test(fields.mobile)) { showAlert('admission-alert','error','❌ Mobile must be 10 digits.'); return; }
+
+  const btn = document.getElementById('adm-submit-btn');
+  const txt = document.getElementById('adm-btn-text');
+  btn.disabled = true; txt.innerHTML = '<span class="loader"></span> Saving...';
+
+  const roll = 'ST' + String(students.length + 1).padStart(4,'0');
+  students.push({ ...fields, rollNo: roll, status:'Active', createdAt: new Date().toISOString(), addedBy: currentUser.username });
+  DB.set('students', students);
+
+  const result = await callSheets({ action:'addStudent', ...fields });
+  btn.disabled = false; txt.innerHTML = '💾 Save to Google Sheets';
+
+  const msg = result.local ? '✅ Admitted! Roll No: <strong>' + roll + '</strong> (Local — set up Sheets in Settings for cloud sync)' :
+              result.error ? '⚠️ Saved locally. Sheets error: ' + result.error :
+              '✅ Admitted! Roll No: <strong>' + (result.rollNo||roll) + '</strong> — Saved to Google Sheets!';
+  showAlert('admission-alert','success',msg);
+  clearAdmissionForm();
+}
+
+function clearAdmissionForm() {
+  ['adm-fname','adm-lname','adm-dob','adm-email','adm-address','adm-mobile','adm-totalfees','adm-guardian','adm-gmobile','adm-qual','adm-remarks'].forEach(id => document.getElementById(id).value='');
+  ['adm-gender','adm-course','adm-batch','adm-idtype'].forEach(id => document.getElementById(id).selectedIndex=0);
+  document.getElementById('adm-date').value = todayStr();
+  document.getElementById('adm-due-date').value = todayStr();
+  document.getElementById('adm-concession').value = '0';
+}
+
+// ============================================================
+// STUDENTS TABLE
+// ============================================================
+function renderStudentsTable(filtered) {
+  const list = filtered !== undefined ? filtered : students;
+  const tbody = document.getElementById('students-table-body');
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px;">No students found</td></tr>'; return;
+  }
+  tbody.innerHTML = list.map(s => {
+    const paid = payments.filter(p=>p.rollNo===s.rollNo).reduce((a,p)=>a+parseFloat(p.amount||0),0);
+    const net = parseFloat(s.totalFees||0)-parseFloat(s.concession||0);
+    const bal = net-paid;
+    const status = bal<=0 ? '<span class="chip chip-green">Paid</span>' :
+                   paid>0 ? '<span class="chip chip-amber">Partial</span>' :
+                   '<span class="chip chip-red">Pending</span>';
+    const editBtn = canModify() ? `<button class="btn btn-outline" onclick="openEditStudent('${s.rollNo}')" style="padding:4px 10px;font-size:12px;color:var(--amber);border-color:var(--amber);">✏️ Edit</button>` : '';
+    return `<tr>
+      <td><strong>${s.rollNo}</strong></td>
+      <td>${s.fname} ${s.lname}</td>
+      <td>${s.course}</td>
+      <td style="font-size:12px;">${s.batch.split('(')[0].trim()}</td>
+      <td>${s.mobile}</td>
+      <td>${status}</td>
+      <td style="display:flex;gap:6px;">
+        <button class="btn btn-outline" onclick="viewStudent('${s.rollNo}')" style="padding:4px 10px;font-size:12px;">View</button>
+        ${editBtn}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filterStudents() {
+  const q = document.getElementById('student-search').value.toLowerCase();
+  const course = document.getElementById('student-filter-course').value;
+  renderStudentsTable(students.filter(s => {
+    const nm = (s.fname+' '+s.lname+' '+s.rollNo).toLowerCase().includes(q);
+    return nm && (!course || s.course===course);
+  }));
+}
+
+function viewStudent(rollNo) {
+  const s = students.find(st=>st.rollNo===rollNo);
+  if (!s) return;
+  const paid = payments.filter(p=>p.rollNo===s.rollNo).reduce((a,p)=>a+parseFloat(p.amount||0),0);
+  const net = parseFloat(s.totalFees||0)-parseFloat(s.concession||0);
+  document.getElementById('modal-student-name').textContent = s.fname+' '+s.lname+' ('+s.rollNo+')';
+  document.getElementById('modal-content').innerHTML = `
+    <div style="font-size:13.5px;line-height:2;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+        <div><span style="color:var(--muted);">Course:</span> <strong>${s.course}</strong></div>
+        <div><span style="color:var(--muted);">Batch:</span> <strong>${s.batch.split('(')[0].trim()}</strong></div>
+        <div><span style="color:var(--muted);">Mobile:</span> <strong>${s.mobile}</strong></div>
+        <div><span style="color:var(--muted);">Email:</span> <strong>${s.email||'—'}</strong></div>
+        <div><span style="color:var(--muted);">DOB:</span> <strong>${s.dob}</strong></div>
+        <div><span style="color:var(--muted);">Admitted:</span> <strong>${s.admDate}</strong></div>
+        <div><span style="color:var(--muted);">Status:</span> <strong>${s.status||'Active'}</strong></div>
+        <div><span style="color:var(--muted);">Duration:</span> <strong>${s.duration} months</strong></div>
+      </div>
+      <div style="background:#f8fafd;border-radius:8px;padding:12px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;">
+          <div><div class="stat-label">Total Fees</div><div style="font-weight:700;font-size:16px;">₹${net.toLocaleString('en-IN')}</div></div>
+          <div><div class="stat-label">Paid</div><div style="font-weight:700;font-size:16px;color:var(--green);">₹${paid.toLocaleString('en-IN')}</div></div>
+          <div><div class="stat-label">Balance</div><div style="font-weight:700;font-size:16px;color:var(--red);">₹${(net-paid).toLocaleString('en-IN')}</div></div>
+        </div>
+      </div>
+      <div style="margin-top:10px;"><span style="color:var(--muted);">Address:</span> ${s.address}</div>
+    </div>`;
+  document.getElementById('student-modal').classList.add('open');
+}
+
+function openEditStudent(rollNo) {
+  if (!canModify()) { alert('Only Admin can edit student records.'); return; }
+  const s = students.find(st=>st.rollNo===rollNo);
+  if (!s) return;
+  document.getElementById('es-fname').value = s.fname;
+  document.getElementById('es-lname').value = s.lname;
+  document.getElementById('es-mobile').value = s.mobile;
+  document.getElementById('es-email').value = s.email||'';
+  document.getElementById('es-course').value = s.course;
+  document.getElementById('es-batch').value = s.batch;
+  document.getElementById('es-totalfees').value = s.totalFees;
+  document.getElementById('es-concession').value = s.concession;
+  document.getElementById('es-status').value = s.status||'Active';
+  document.getElementById('es-remarks').value = s.remarks||'';
+  document.getElementById('es-roll').value = rollNo;
+  document.getElementById('edit-student-alert').innerHTML = '';
+  document.getElementById('edit-student-modal').classList.add('open');
+}
+
+function saveStudentEdit() {
+  if (!canModify()) { showAlert('global-alert','error','❌ Only Admin can edit records.'); return; }
+  const roll = document.getElementById('es-roll').value;
+  const idx = students.findIndex(s=>s.rollNo===roll);
+  if (idx < 0) return;
+  students[idx] = { ...students[idx],
+    fname: document.getElementById('es-fname').value.trim(),
+    lname: document.getElementById('es-lname').value.trim(),
+    mobile: document.getElementById('es-mobile').value.trim(),
+    email: document.getElementById('es-email').value.trim(),
+    course: document.getElementById('es-course').value,
+    batch: document.getElementById('es-batch').value,
+    totalFees: parseFloat(document.getElementById('es-totalfees').value)||0,
+    concession: parseFloat(document.getElementById('es-concession').value)||0,
+    status: document.getElementById('es-status').value,
+    remarks: document.getElementById('es-remarks').value.trim(),
+    editedBy: currentUser.username, editedAt: new Date().toISOString()
+  };
+  DB.set('students', students);
+  closeModal('edit-student-modal');
+  renderStudentsTable();
+  showAlert('global-alert','success','✅ Student record updated.');
+}
+
+function deleteStudent() {
+  if (!canModify()) { showAlert('global-alert','error','❌ Only Admin can delete records.'); return; }
+  const roll = document.getElementById('es-roll').value;
+  if (!confirm('Delete student ' + roll + '? This cannot be undone.')) return;
+  students = students.filter(s=>s.rollNo!==roll);
+  DB.set('students', students);
+  closeModal('edit-student-modal');
+  renderStudentsTable();
+  showAlert('global-alert','success','Student deleted.');
+}
+
+// ============================================================
+// FEES
+// ============================================================
+let selectedStudentForFee = null;
+
+function searchStudentForFee() {
+  const q = document.getElementById('fee-search').value.toLowerCase().trim();
+  if (!q) { document.getElementById('fee-student-info').style.display='none'; document.getElementById('fee-payment-form').style.display='none'; return; }
+  const s = students.find(st=>st.rollNo.toLowerCase()===q||(st.fname+' '+st.lname).toLowerCase().includes(q));
+  if (s) {
+    selectedStudentForFee = s;
+    const paid = payments.filter(p=>p.rollNo===s.rollNo).reduce((a,p)=>a+parseFloat(p.amount||0),0);
+    const net = parseFloat(s.totalFees||0)-parseFloat(s.concession||0);
+    document.getElementById('fee-sname').textContent = s.fname+' '+s.lname;
+    document.getElementById('fee-scourse').textContent = s.course;
+    document.getElementById('fee-stotal').textContent = '₹'+net.toLocaleString('en-IN');
+    document.getElementById('fee-spaid').textContent = '₹'+paid.toLocaleString('en-IN');
+    document.getElementById('fee-sbalance').textContent = '₹'+(net-paid).toLocaleString('en-IN');
+    document.getElementById('fee-student-info').style.display='block';
+    document.getElementById('fee-payment-form').style.display='block';
+    }
+}
+
+async function collectFee() {
+  if (!selectedStudentForFee) return;
+  const amount = parseFloat(document.getElementById('fee-amount').value);
+  if (!amount||amount<=0) { showAlert('fees-alert','error','❌ Enter a valid amount.'); return; }
+
+  const btn = document.getElementById('fee-collect-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Recording...';
+
+  const rcptNo = 'RCP'+String(Date.now()).slice(-6);
+  const pd = {
+    receiptNo: rcptNo, date: document.getElementById('fee-date').value,
+    rollNo: selectedStudentForFee.rollNo, studentName: selectedStudentForFee.fname+' '+selectedStudentForFee.lname,
+    course: selectedStudentForFee.course, amount,
+    mode: document.getElementById('fee-mode').value,
+    reference: document.getElementById('fee-ref').value,
+    remarks: document.getElementById('fee-remarks').value,
+    recordedBy: currentUser.username
+  };
+  payments.push(pd);
+  DB.set('payments', payments);
+  await callSheets({ action:'addPayment', ...pd });
+
+  btn.disabled = false; btn.innerHTML = '💾 Record Payment';
+  showAlert('fees-alert','success','✅ ₹'+amount.toLocaleString('en-IN')+' recorded! Receipt: <strong>'+rcptNo+'</strong>');
+  document.getElementById('fee-amount').value='';
+  document.getElementById('fee-ref').value='';
+  searchStudentForFee();
+}
+
+function goToReceipt() {
+  if (!selectedStudentForFee) return;
+  showPage('receipt');
+  const last = payments.filter(p=>p.rollNo===selectedStudentForFee.rollNo).slice(-1)[0];
+  if (last) { document.getElementById('receipt-select').value=last.receiptNo; loadReceipt(); }
+}
+
+function renderPaymentsTable() {
+  const tbody = document.getElementById('payments-table-body');
+  if (!payments.length) { tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px;">No payments yet</td></tr>'; return; }
+  tbody.innerHTML = [...payments].reverse().map(p=>`
+    <tr>
+      <td><strong>${p.receiptNo}</strong></td><td>${p.date}</td><td>${p.studentName}</td><td>${p.course}</td>
+      <td><strong>₹${parseFloat(p.amount).toLocaleString('en-IN')}</strong></td>
+      <td><span class="chip chip-blue">${p.mode}</span></td>
+      <td><button class="btn btn-outline" onclick="printReceipt('${p.receiptNo}')" style="padding:4px 10px;font-size:12px;">Print</button></td>
+    </tr>`).join('');
+}
+
+// ============================================================
+// RECEIPT
+// ============================================================
+function refreshReceiptDropdown() {
+  const sel = document.getElementById('receipt-select');
+  sel.innerHTML = '<option value="">— Select Receipt —</option>';
+  [...payments].reverse().forEach(p=>{
+    const o=document.createElement('option'); o.value=p.receiptNo;
+    o.textContent = p.receiptNo+' — '+p.studentName+' — ₹'+parseFloat(p.amount).toLocaleString('en-IN');
+    sel.appendChild(o);
+  });
+}
+
+function loadReceipt() {
+  const rcptNo = document.getElementById('receipt-select').value;
+  if (!rcptNo) { document.getElementById('receipt-body').innerHTML='<p style="color:var(--muted);text-align:center;padding:20px;">Select a receipt</p>'; return; }
+  const p = payments.find(x=>x.receiptNo===rcptNo);
+  const s = students.find(x=>x.rollNo===p.rollNo);
+  const totalPaid = payments.filter(x=>x.rollNo===p.rollNo).reduce((a,x)=>a+parseFloat(x.amount||0),0);
+  const net = s ? parseFloat(s.totalFees||0)-parseFloat(s.concession||0) : 0;
+  const bal = net-totalPaid;
+  const instName = cfg.instName || 'EduTrack Institute';
+  document.getElementById('receipt-inst-name').textContent = instName;
+  document.getElementById('receipt-footer-text').innerHTML = `<p>Thank you for your payment. This is a computer generated receipt.</p><p style="margin-top:4px;">${instName}${cfg.instContact?' | '+cfg.instContact:''}</p>`;
+  document.getElementById('receipt-body').innerHTML=`
+    <div style="display:flex;justify-content:space-between;margin-bottom:16px;">
+      <div><div class="stat-label">Receipt No</div><div style="font-weight:700;">${p.receiptNo}</div></div>
+      <div style="text-align:right;"><div class="stat-label">Date</div><div style="font-weight:700;">${p.date}</div></div>
+    </div>
+    <div style="background:#f8fafd;border-radius:8px;padding:12px;margin-bottom:16px;">
+      <div class="receipt-row"><span style="color:var(--muted);">Student</span><span style="font-weight:600;">${p.studentName}</span></div>
+      <div class="receipt-row"><span style="color:var(--muted);">Roll No</span><span>${p.rollNo}</span></div>
+      <div class="receipt-row"><span style="color:var(--muted);">Course</span><span>${p.course}</span></div>
+    </div>
+    <div class="receipt-row"><span style="color:var(--muted);">Total Fees</span><span>₹${net.toLocaleString('en-IN')}</span></div>
+    <div class="receipt-row"><span style="color:var(--muted);">Amount Paid (This Receipt)</span><span style="color:var(--green);font-weight:600;">₹${parseFloat(p.amount).toLocaleString('en-IN')}</span></div>
+    <div class="receipt-row"><span style="color:var(--muted);">Payment Mode</span><span>${p.mode}${p.reference?' — '+p.reference:''}</span></div>
+    <div class="receipt-row"><span style="color:var(--muted);">Total Paid to Date</span><span>₹${totalPaid.toLocaleString('en-IN')}</span></div>
+    <div class="receipt-total"><span>Balance Due</span><span style="color:${bal<=0?'var(--green)':'var(--red)'};">₹${Math.abs(bal).toLocaleString('en-IN')}</span></div>
+    <div style="text-align:center;margin-top:16px;"><div class="stamp">${bal<=0?'PAID IN FULL':'PARTIAL PAYMENT'}</div></div>
+    ${p.remarks?'<p style="margin-top:12px;font-size:12px;color:var(--muted);">Remarks: '+p.remarks+'</p>':''}`;
+}
+
+function printReceipt(rcptNo) {
+  document.getElementById('receipt-select').value=rcptNo; loadReceipt();
+  showPage('receipt'); setTimeout(()=>window.print(),300);
+}
+
+// ============================================================
+// ATTENDANCE
+// ============================================================
+function loadAttStudents() {
+  const batch = document.getElementById('att-batch').value;
+  const course = document.getElementById('att-course').value;
+  if (!batch||!course) return;
+  const filtered = students.filter(s=>s.batch===batch&&s.course===course&&(s.status||'Active')==='Active');
+  const listEl = document.getElementById('att-student-list');
+  const emptyEl = document.getElementById('att-empty');
+  if (!filtered.length) { listEl.style.display='none'; emptyEl.style.display='block'; return; }
+  listEl.style.display='block'; emptyEl.style.display='none';
+  document.getElementById('att-rows').innerHTML = filtered.map(s=>`
+    <div class="att-student-row" id="att-row-${s.rollNo}" data-roll="${s.rollNo}" data-name="${s.fname} ${s.lname}">
+      <div style="width:60px;font-size:12px;font-weight:600;color:var(--muted);">${s.rollNo}</div>
+      <div class="att-name">${s.fname} ${s.lname}</div>
+      <div class="att-status">
+        <label class="att-radio"><input type="radio" name="att-${s.rollNo}" value="Present" checked onchange="toggleAttFields('${s.rollNo}','Present')"> P</label>
+        <label class="att-radio" style="color:var(--red);"><input type="radio" name="att-${s.rollNo}" value="Absent" onchange="toggleAttFields('${s.rollNo}','Absent')"> A</label>
+      </div>
+      <div class="att-fields">
+        <input type="text" id="topic-${s.rollNo}" placeholder="Topic covered" style="flex:1;">
+        <input type="text" id="software-${s.rollNo}" placeholder="Software used" style="flex:1;">
+      </div>
+    </div>`).join('');
+}
+
+function toggleAttFields(rollNo, status) {
+  const t=document.getElementById('topic-'+rollNo), sw=document.getElementById('software-'+rollNo);
+  const row=document.getElementById('att-row-'+rollNo);
+  if (status==='Absent') { t.disabled=true; sw.disabled=true; t.value=''; sw.value=''; row.style.opacity='0.5'; }
+  else { t.disabled=false; sw.disabled=false; row.style.opacity='1'; }
+}
+
+function markAllPresent() {
+  document.querySelectorAll('[id^="att-row-"]').forEach(row=>{
+    const roll=row.dataset.roll;
+    const radio=document.querySelector(`input[name="att-${roll}"][value="Present"]`);
+    if (radio) { radio.checked=true; toggleAttFields(roll,'Present'); }
+  });
+}
+
+async function submitAttendance() {
+  const date=document.getElementById('att-date').value;
+  const batch=document.getElementById('att-batch').value;
+  const course=document.getElementById('att-course').value;
+  const rows=document.querySelectorAll('[id^="att-row-"]');
+  if (!rows.length) { showAlert('att-alert','error','No students loaded.'); return; }
+
+  const records = [];
+  rows.forEach(row=>{
+    const roll=row.dataset.roll, name=row.dataset.name;
+    const status=document.querySelector(`input[name="att-${roll}"]:checked`).value;
+    records.push({ roll, name, status, topic:document.getElementById('topic-'+roll).value.trim(), software:document.getElementById('software-'+roll).value.trim() });
+  });
+
+  const btn=document.getElementById('att-submit-btn');
+  btn.disabled=true; btn.innerHTML='<span class="loader"></span> Submitting...';
+
+  const attData = records.map(r=>({ date, rollNo:r.roll, studentName:r.name, course, batch, status:r.status, topic:r.topic, software:r.software, recordedBy:currentUser.username, recordedAt:new Date().toISOString() }));
+  attendance=[...attendance,...attData];
+  DB.set('attendance',attendance);
+  await callSheets({action:'addAttendance',date,course,batch,records});
+
+  btn.disabled=false; btn.innerHTML='💾 Submit Attendance';
+  showAlert('att-alert','success',`✅ Attendance for ${records.length} students saved. Present: ${records.filter(r=>r.status==='Present').length}, Absent: ${records.filter(r=>r.status==='Absent').length}`);
+  setTimeout(()=>{ document.getElementById('att-batch').selectedIndex=0; document.getElementById('att-course').selectedIndex=0; document.getElementById('att-student-list').style.display='none'; document.getElementById('att-empty').style.display='none'; },2000);
+}
+
+// ============================================================
+// ATTENDANCE REPORT
+// ============================================================
+function generateAttReport() {
+  let f=attendance;
+  const course=document.getElementById('ar-course').value;
+  const batch=document.getElementById('ar-batch').value;
+  const from=document.getElementById('ar-from').value;
+  const to=document.getElementById('ar-to').value;
+  if (course) f=f.filter(a=>a.course===course);
+  if (batch) f=f.filter(a=>a.batch===batch);
+  if (from) f=f.filter(a=>a.date>=from);
+  if (to) f=f.filter(a=>a.date<=to);
+  f.sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('att-report-output').style.display='block';
+  const tbody=document.getElementById('att-report-body');
+  if (!f.length) { tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:30px;">No records for the selected filters</td></tr>'; return; }
+  tbody.innerHTML=f.map(a=>`<tr>
+    <td>${a.date}</td><td>${a.rollNo}</td><td>${a.studentName}</td><td>${a.course}</td>
+    <td style="font-size:12px;">${(a.batch||'').split('(')[0].trim()}</td>
+    <td><span class="chip ${a.status==='Present'?'chip-green':'chip-red'}">${a.status}</span></td>
+    <td>${a.topic||'—'}</td><td>${a.software||'—'}</td>
+  </tr>`).join('');
+}
+
+// ============================================================
+// STUDENT DASHBOARD
+// ============================================================
+function loadStudentDashboard() {
+  const q=document.getElementById('sd-search').value.trim().toLowerCase();
+  const s=students.find(st=>st.rollNo.toLowerCase()===q||(st.fname+' '+st.lname).toLowerCase().includes(q));
+  if (!s) { alert('Student not found. Check the roll number or name.'); return; }
+
+  const isTeacher = currentUser && currentUser.role === 'teacher';
+
+  document.getElementById('sd-avatar').textContent=(s.fname[0]+s.lname[0]).toUpperCase();
+  document.getElementById('sd-name').textContent=s.fname+' '+s.lname;
+  document.getElementById('sd-course').textContent=s.course+' — '+s.batch.split('(')[0].trim();
+  document.getElementById('sd-roll').textContent=s.rollNo;
+  document.getElementById('sd-batch').textContent=s.batch.split('(')[0].trim();
+  document.getElementById('sd-admitted').textContent=s.admDate;
+  document.getElementById('sd-mobile').textContent=s.mobile;
+
+  // --- Attendance stats ---
+  const attLog=attendance.filter(a=>a.rollNo===s.rollNo);
+  const present=attLog.filter(a=>a.status==='Present').length;
+  const pct=attLog.length?Math.round(present/attLog.length*100):0;
+  document.getElementById('sd-att-pct').textContent=pct+'%';
+  document.getElementById('sd-att-days').textContent=present+' present of '+attLog.length+' days';
+
+  // --- Fee stats (admin/office only) ---
+  const feePaidCard = document.getElementById('sd-fees-paid-card');
+  const feeBalCard = document.getElementById('sd-fees-balance-card');
+  const payCard = document.getElementById('sd-payment-card');
+  if (isTeacher) {
+    feePaidCard.style.display='none';
+    feeBalCard.style.display='none';
+    payCard.style.display='none';
+  } else {
+    feePaidCard.style.display='';
+    feeBalCard.style.display='';
+    payCard.style.display='';
+    const paid=payments.filter(p=>p.rollNo===s.rollNo).reduce((a,p)=>a+parseFloat(p.amount||0),0);
+    const net=parseFloat(s.totalFees||0)-parseFloat(s.concession||0);
+    document.getElementById('sd-fees-paid').textContent='₹'+paid.toLocaleString('en-IN');
+    document.getElementById('sd-fees-total').textContent='of ₹'+net.toLocaleString('en-IN');
+    document.getElementById('sd-fees-balance').textContent='₹'+Math.max(0,net-paid).toLocaleString('en-IN');
+    // Payment log
+    const payLog=payments.filter(p=>p.rollNo===s.rollNo);
+    let runBal=net;
+    document.getElementById('sd-pay-log').innerHTML=payLog.length ? payLog.map(p=>{
+      runBal-=parseFloat(p.amount||0);
+      return `<tr>
+        <td><strong>${p.receiptNo}</strong></td><td>${p.date}</td>
+        <td style="color:var(--green);font-weight:600;">₹${parseFloat(p.amount).toLocaleString('en-IN')}</td>
+        <td><span class="chip chip-blue">${p.mode}</span></td>
+        <td style="color:${runBal<=0?'var(--green)':'var(--red)'};">₹${Math.max(0,runBal).toLocaleString('en-IN')}</td>
+      </tr>`;
+    }).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px;">No payments</td></tr>';
+  }
+
+  // --- Course progress / Pending months (teacher view) ---
+  const progressCard = document.getElementById('sd-course-progress');
+  if (isTeacher) {
+    progressCard.style.display='';
+    const admDate = new Date(s.admDate);
+    const duration = parseInt(s.duration)||0;
+    const endDate = new Date(admDate);
+    endDate.setMonth(endDate.getMonth() + duration);
+    const today = new Date();
+    const totalDays = Math.max(1,(endDate-admDate)/(1000*60*60*24));
+    const elapsedDays = Math.min(totalDays, Math.max(0,(today-admDate)/(1000*60*60*24)));
+    const progressPct = Math.round(elapsedDays/totalDays*100);
+    const msRemaining = endDate - today;
+    const daysRemaining = Math.max(0, Math.ceil(msRemaining/(1000*60*60*24)));
+    const monthsRemaining = Math.max(0, Math.round(daysRemaining/30));
+    const isOverdue = today > endDate;
+    const uniqueTopics = [...new Set(attLog.filter(a=>a.topic).map(a=>a.topic))];
+    document.getElementById('sd-progress-body').innerHTML=`
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div><div class="stat-label">Duration</div><div style="font-weight:600;">${duration} months</div></div>
+        <div><div class="stat-label">Start Date</div><div style="font-weight:600;">${s.admDate}</div></div>
+        <div><div class="stat-label">End Date</div><div style="font-weight:600;">${endDate.toISOString().slice(0,10)}</div></div>
+      </div>
+      <div style="margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:5px;">
+          <span>Course Progress</span><span>${progressPct}%</span>
+        </div>
+        <div style="background:#f1f5f9;border-radius:20px;height:10px;overflow:hidden;">
+          <div style="height:100%;width:${progressPct}%;background:${progressPct>=100?'var(--green)':'var(--teal)'};border-radius:20px;transition:width 0.5s;"></div>
+        </div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:16px;align-items:center;">
+        ${isOverdue
+          ? '<span class="chip chip-red" style="font-size:12px;padding:4px 12px;">Course Overdue</span>'
+          : `<span style="font-size:13px;">⏳ <strong>${monthsRemaining} month${monthsRemaining!==1?'s':''}</strong> remaining</span>
+             <span style="font-size:13px;color:var(--muted);">(${daysRemaining} days)</span>`
+        }
+      </div>
+      ${uniqueTopics.length ? `<div style="margin-top:14px;"><div class="stat-label" style="margin-bottom:6px;">Topics Covered</div><div style="display:flex;flex-wrap:wrap;gap:6px;">${uniqueTopics.map(t=>`<span class="chip chip-blue" style="font-size:11px;">${t}</span>`).join('')}</div></div>` : ''}
+    `;
+  } else {
+    progressCard.style.display='none';
+  }
+
+  // --- Attendance log (all roles) ---
+  const attBody=document.getElementById('sd-att-log');
+  attBody.innerHTML=attLog.length ? [...attLog].reverse().map(a=>`<tr>
+    <td>${a.date}</td>
+    <td><span class="chip ${a.status==='Present'?'chip-green':'chip-red'}">${a.status}</span></td>
+    <td>${a.topic||'—'}</td><td>${a.software||'—'}</td>
+  </tr>`).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px;">No attendance records</td></tr>';
+
+  // --- Marks log ---
+  const studentMarks = marks.filter(m=>m.rollNo===s.rollNo);
+  const marksBody = document.getElementById('sd-marks-log');
+  marksBody.innerHTML = studentMarks.length ? [...studentMarks].reverse().map(m=>{
+    const pct = m.maxMarks>0 ? Math.round(m.obtainedMarks/m.maxMarks*100) : 0;
+    const gradeColor = m.grade==='F'?'chip-red':m.grade==='O'||m.grade==='A+'?'chip-green':m.grade==='A'||m.grade==='B+'?'chip-blue':'chip-amber';
+    return `<tr>
+      <td><strong>${m.subject}</strong></td>
+      <td>${m.maxMarks}</td>
+      <td>${m.obtainedMarks}</td>
+      <td><strong>${pct}%</strong></td>
+      <td><span class="chip ${gradeColor}">${m.grade||'—'}</span></td>
+      <td style="font-size:12px;color:var(--muted);">${m.enteredBy||'—'}</td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px;">No marks records</td></tr>';
+
+  document.getElementById('sd-content').style.display='block';
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function refreshDashboard() {
+  const showFees = isAdmin();
+
+  if (showFees) {
+    // Admin full dashboard
+    document.getElementById('stat-students').textContent=students.length;
+    buildDueTable('today-due-body','today-due-total',true);
+    document.getElementById('stat-fees').textContent='₹'+payments.reduce((a,p)=>a+parseFloat(p.amount||0),0).toLocaleString('en-IN');
+    const pctA=attendance.length?Math.round(attendance.filter(a=>a.status==='Present').length/attendance.length*100):0;
+    document.getElementById('stat-att').textContent=pctA+'%';
+    const pending=students.reduce((a,s)=>{
+      const paid=payments.filter(p=>p.rollNo===s.rollNo).reduce((x,p)=>x+parseFloat(p.amount||0),0);
+      const net=parseFloat(s.totalFees||0)-parseFloat(s.concession||0);
+      return a+Math.max(0,net-paid);
+    },0);
+    document.getElementById('stat-pending').textContent='₹'+pending.toLocaleString('en-IN');
+  } else {
+    // Teacher / Office restricted dashboard
+    document.getElementById('stat-students-r').textContent=students.length;
+    const pctR=attendance.length?Math.round(attendance.filter(a=>a.status==='Present').length/attendance.length*100):0;
+    document.getElementById('stat-att-r').textContent=pctR+'%';
+    const batchSet=new Set(students.map(s=>s.batch).filter(Boolean));
+    document.getElementById('stat-batches-r').textContent=batchSet.size;
+    // Due list for office staff (not teacher)
+    if (currentUser && currentUser.role==='office') {
+      document.getElementById('today-due-card-r').style.display='';
+      buildDueTable('today-due-body-r','today-due-total-r',true);
+    }
+    // Course chart
+    const courses={};
+    students.forEach(s=>{ if(s.course) courses[s.course]=(courses[s.course]||0)+1; });
+    const maxC=Math.max(...Object.values(courses),1);
+    document.getElementById('course-chart-r').innerHTML=Object.keys(courses).length?Object.entries(courses).map(([co,n])=>`
+      <div class="dash-chart-bar">
+        <div class="dash-bar-label">${co.length>18?co.slice(0,17)+'…':co}</div>
+        <div class="dash-bar-fill" style="width:${Math.round(n/maxC*160)}px;">${n}</div>
+      </div>`).join(''):'<p style="color:var(--muted);font-size:13px;">No data</p>';
+    // Batch chart
+    const batches={};
+    students.forEach(s=>{ if(s.batch){ const k=s.batch.split('(')[0].trim(); batches[k]=(batches[k]||0)+1; }});
+    const maxB=Math.max(...Object.values(batches),1);
+    document.getElementById('batch-chart-r').innerHTML=Object.keys(batches).length?Object.entries(batches).map(([bt,n])=>`
+      <div class="dash-chart-bar">
+        <div class="dash-bar-label">${bt}</div>
+        <div class="dash-bar-fill" style="width:${Math.round(n/maxB*160)}px;background:var(--amber);">${n}</div>
+      </div>`).join(''):'<p style="color:var(--muted);font-size:13px;">No data</p>';
+  }
+
+  const courses={};
+  students.forEach(s=>{ courses[s.course]=(courses[s.course]||0)+1; });
+  const max=Math.max(...Object.values(courses),1);
+  const chartEl=document.getElementById('course-chart');
+  chartEl.innerHTML=Object.keys(courses).length ? Object.entries(courses).map(([c,n])=>`
+    <div style="margin-bottom:10px;">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">${c}</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="mini-bar" style="width:${Math.round(n/max*200)}px;">${n}</div>
+        <span style="font-size:12px;color:var(--muted);">${n} student${n>1?'s':''}</span>
+      </div>
+    </div>`).join('') : '<p style="color:var(--muted);font-size:13px;">No enrollment data yet</p>';
+
+  const recentEl=document.getElementById('recent-admissions');
+  recentEl.innerHTML=students.length ? [...students].reverse().slice(0,5).map(s=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f1f5f9;">
+      <div style="width:32px;height:32px;border-radius:50%;background:var(--navy);color:var(--teal-light);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;">${s.fname[0]}${s.lname[0]}</div>
+      <div style="flex:1;"><div style="font-weight:500;font-size:13.5px;">${s.fname} ${s.lname}</div><div style="font-size:11px;color:var(--muted);">${s.course} — ${s.admDate}</div></div>
+      <span class="chip chip-blue">${s.rollNo}</span>
+    </div>`).join('') : '<p style="color:var(--muted);font-size:13px;">No admissions yet.</p>';
+}
+
+// ============================================================
+// SIDEBAR MOBILE TOGGLE
+// ============================================================
+function toggleSidebar() {
+  document.querySelector('.sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+// Close sidebar on nav click on mobile
+document.querySelectorAll('.nav-item').forEach(n => {
+  n.addEventListener('click', () => {
+    if (window.innerWidth <= 768) {
+      document.querySelector('.sidebar').classList.remove('open');
+      document.getElementById('sidebar-overlay').classList.remove('open');
+    }
+  });
+});
+
+// ============================================================
+// DUE DATE CALCULATION
+// ============================================================
+function autoSetDueDate() {
+  const admDate = document.getElementById('adm-date').value;
+  if (admDate) {
+    document.getElementById('adm-due-date').value = admDate;
+  }
+}
+
+function getStudentDueDate(s) {
+  // Priority 1: explicit feesDueDate set at admission
+  if (s.feesDueDate) return s.feesDueDate;
+  // Priority 2: custom due date override (set from dashboard edit)
+  if (s.customDueDate) return s.customDueDate;
+  // Default: same day-of-month as admission, current month
+  if (!s.admDate) return null;
+  const adm = new Date(s.admDate);
+  const today = new Date();
+  const due = new Date(today.getFullYear(), today.getMonth(), adm.getDate());
+  return due.toISOString().slice(0,10);
+}
+
+function getDueStatus(dueDateStr) {
+  if (!dueDateStr) return 'unknown';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const due = new Date(dueDateStr); due.setHours(0,0,0,0);
+  const diff = (due - today) / (1000*60*60*24);
+  if (diff < 0) return 'overdue';
+  if (diff === 0) return 'today';
+  if (diff <= 5) return 'soon';
+  return 'ok';
+}
+
+function buildDueTable(bodyId, totalId, canEdit) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  // Students with outstanding balance
+  const dueStudents = students.filter(s => {
+    const paid = payments.filter(p=>p.rollNo===s.rollNo).reduce((a,p)=>a+parseFloat(p.amount||0),0);
+    const net = parseFloat(s.totalFees||0) - parseFloat(s.concession||0);
+    return net - paid > 0;
+  }).map(s => {
+    const paid = payments.filter(p=>p.rollNo===s.rollNo).reduce((a,p)=>a+parseFloat(p.amount||0),0);
+    const net = parseFloat(s.totalFees||0) - parseFloat(s.concession||0);
+    const balance = net - paid;
+    const dueDate = getStudentDueDate(s);
+    const status = getDueStatus(dueDate);
+    return { s, balance, dueDate, status };
+  }).filter(x => x.status === 'overdue' || x.status === 'today' || x.status === 'soon');
+
+  dueStudents.sort((a,b) => a.dueDate.localeCompare(b.dueDate));
+
+  const tbody = document.getElementById(bodyId);
+  const totalEl = document.getElementById(totalId);
+
+  if (!dueStudents.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px;">No upcoming dues in the next 5 days 🎉</td></tr>';
+    if (totalEl) totalEl.textContent = '';
+    return;
+  }
+
+  const totalDue = dueStudents.reduce((a,x)=>a+x.balance,0);
+  if (totalEl) totalEl.textContent = 'Total: ₹'+totalDue.toLocaleString('en-IN');
+
+  const statusBadge = status => {
+    if (status==='overdue') return '<span class="due-overdue">Overdue</span>';
+    if (status==='today') return '<span class="due-today">Due Today</span>';
+    if (status==='soon') return '<span class="due-soon">Due Soon</span>';
+    return '';
+  };
+
+  tbody.innerHTML = dueStudents.map(({s,balance,dueDate,status}) => `
+    <tr>
+      <td><strong>${s.rollNo}</strong></td>
+      <td>${s.fname} ${s.lname}</td>
+      <td style="font-size:12px;">${s.course}</td>
+      <td style="font-weight:700;color:var(--red);">₹${balance.toLocaleString('en-IN')}</td>
+      <td id="duedate-display-${s.rollNo}">${dueDate||'—'}</td>
+      <td>${statusBadge(status)}</td>
+      <td>${canEdit ? `<button class="btn btn-outline" onclick="editDueDate('${s.rollNo}')" style="padding:4px 10px;font-size:12px;">✏️ Edit</button>` : '—'}</td>
+    </tr>`).join('');
+}
+
+function editDueDate(rollNo) {
+  const s = students.find(x=>x.rollNo===rollNo);
+  if (!s) return;
+  const current = s.customDueDate || getStudentDueDate(s);
+  const newDate = prompt(`Edit due date for ${s.fname} ${s.lname} (${rollNo}):
+Current: ${current}
+
+Enter new due date (YYYY-MM-DD):`, current);
+  if (!newDate) return;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate)) { alert('Invalid date format. Use YYYY-MM-DD'); return; }
+  s.customDueDate = newDate;
+  DB.set('students', students);
+  refreshDashboard();
+  showAlert('global-alert','success','✅ Due date updated for '+s.fname+' '+s.lname);
+}
+
+// ============================================================
+// SYNC USERS TO GOOGLE SHEETS
+// ============================================================
+async function syncUsersToSheets() {
+  if (!cfg.gsUrl) { document.getElementById('sync-users-status').textContent = '❌ No URL configured'; return; }
+  const btn = document.getElementById('sync-users-btn');
+  const status = document.getElementById('sync-users-status');
+  btn.disabled = true; status.textContent = '⏳ Syncing...';
+  const users = getUsers();
+  // Never send passwords in clear — send a masked copy for admin reference
+  const safeUsers = users.map(u => ({
+    name: u.name, username: u.username, role: u.role,
+    dept: u.dept||'', mobile: u.mobile||'',
+    courses: (u.courses||[]).join(', ')
+  }));
+  const result = await callSheets({ action:'syncUsers', users: safeUsers });
+  btn.disabled = false;
+  status.textContent = result.local ? '⚠️ No Sheets URL' :
+    result.error ? '❌ Error: '+result.error :
+    '✅ Synced '+safeUsers.length+' users at '+new Date().toLocaleTimeString();
+}
+
+// ============================================================
+// EXCEL EXPORT / IMPORT
+// ============================================================
+function exportToExcel() {
+  const scope = document.getElementById('excel-scope').value;
+  const filename = (document.getElementById('excel-filename').value.trim()||'EduTrack_Data') + '.csv';
+  // Build multi-sheet as separate CSV downloads (browser compatible without external libs)
+  const sheets = [];
+  if (scope==='all'||scope==='students') sheets.push({name:'Students', data:students, cols:['rollNo','fname','lname','dob','gender','mobile','email','address','course','batch','admDate','duration','totalFees','concession','guardian','guardianMobile','qual','idType','remarks','status']});
+  if (scope==='all'||scope==='payments') sheets.push({name:'Payments', data:payments, cols:['receiptNo','date','rollNo','studentName','course','amount','mode','reference','remarks']});
+  if (scope==='all'||scope==='attendance') sheets.push({name:'Attendance', data:attendance, cols:['date','rollNo','studentName','course','batch','status','topic','software']});
+  if (scope==='all'||scope==='marks') sheets.push({name:'Marks', data:marks, cols:['rollNo','studentName','course','batch','subject','maxMarks','obtainedMarks','grade','enteredBy']});
+  if (scope==='all'||scope==='salary') sheets.push({name:'Salary', data:salaries, cols:['month','staffName','basic','workDays','presentDays','leaveDays','otHours','otDays','otAmount','advance','deductions','bonus','grossPay','netPay','remarks']});
+
+  let downloaded = 0;
+  sheets.forEach((sheet, idx) => {
+    setTimeout(()=>{
+      if (!sheet.data.length) return;
+      const header = sheet.cols.join(',');
+      const rows = sheet.data.map(row =>
+        sheet.cols.map(col => {
+          const v = String(row[col]||'').replace(/"/g,'""');
+          return v.includes(',') || v.includes('"') || v.includes('\n') ? `"${v}"` : v;
+        }).join(',')
+      );
+      const csv = [header, ...rows].join('\n');
+      const blob = new Blob([csv], {type:'text/csv'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = sheet.name+'_'+filename;
+      a.click();
+      downloaded++;
+    }, idx * 300);
+  });
+
+  document.getElementById('excel-status').innerHTML =
+    `<div class="alert alert-success">✅ Downloading ${sheets.filter(s=>s.data.length).length} CSV file(s). Open in Excel or import back here.</div>`;
+}
+
+function importFromExcel(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const text = e.target.result;
+      const lines = text.split('\n').filter(l=>l.trim());
+      if (lines.length < 2) { document.getElementById('excel-status').innerHTML='<div class="alert alert-error">❌ File appears empty.</div>'; return; }
+      const headers = lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,''));
+      const rows = lines.slice(1).map(line => {
+        const vals = parseCSVLine(line);
+        const obj = {};
+        headers.forEach((h,i)=>{ obj[h]=vals[i]||''; });
+        return obj;
+      });
+      // Auto-detect sheet by headers
+      const fname = file.name.toLowerCase();
+      let imported = 0;
+      if (fname.includes('student')) {
+        students = rows.filter(r=>r.rollNo||r['Roll No']||r['rollNo']);
+        if (!students.length) students = rows;
+        DB.set('students', students); imported = students.length;
+        document.getElementById('excel-status').innerHTML=`<div class="alert alert-success">✅ Imported ${imported} students.</div>`;
+      } else if (fname.includes('payment')) {
+        payments = rows; DB.set('payments', payments); imported = payments.length;
+        document.getElementById('excel-status').innerHTML=`<div class="alert alert-success">✅ Imported ${imported} payments.</div>`;
+      } else if (fname.includes('attendance')) {
+        attendance = rows; DB.set('attendance', attendance); imported = attendance.length;
+        document.getElementById('excel-status').innerHTML=`<div class="alert alert-success">✅ Imported ${imported} attendance records.</div>`;
+      } else if (fname.includes('marks')) {
+        marks = rows; DB.set('marks', marks); imported = marks.length;
+        document.getElementById('excel-status').innerHTML=`<div class="alert alert-success">✅ Imported ${imported} marks records.</div>`;
+      } else if (fname.includes('salary')) {
+        salaries = rows; DB.set('salaries', salaries); imported = salaries.length;
+        document.getElementById('excel-status').innerHTML=`<div class="alert alert-success">✅ Imported ${imported} salary records.</div>`;
+      } else {
+        document.getElementById('excel-status').innerHTML='<div class="alert alert-warn">⚠️ Could not detect data type from filename. Rename file to include: students, payments, attendance, marks, or salary.</div>';
+      }
+      refreshDashboard();
+    } catch(err) {
+      document.getElementById('excel-status').innerHTML=`<div class="alert alert-error">❌ Import failed: ${err.message}</div>`;
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function parseCSVLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    if (line[i] === '"') {
+      if (inQuotes && line[i+1] === '"') { current += '"'; i++; }
+      else inQuotes = !inQuotes;
+    } else if (line[i] === ',' && !inQuotes) {
+      result.push(current.trim()); current = '';
+    } else { current += line[i]; }
+  }
+  result.push(current.trim());
+  return result;
+}
+
+// ============================================================
+// MASTER DATA
+// ============================================================
+function saveMasterData() {
+  DB.set('master_courses', masterData.courses);
+  DB.set('master_batches', masterData.batches);
+  DB.set('master_staff', masterData.staff);
+}
+
+function renderMasterData() {
+  // COURSES
+  const cl = document.getElementById('master-courses-list');
+  cl.innerHTML = masterData.courses.length ? masterData.courses.map((co,i) => `
+    <div class="master-item">
+      <div class="master-badge">${co.name.slice(0,2).toUpperCase()}</div>
+      <div style="flex:1;">
+        <div style="font-weight:600;font-size:13.5px;">${co.name}</div>
+        <div style="font-size:11.5px;color:var(--muted);">${co.duration} months · ₹${(co.fee||0).toLocaleString('en-IN')}</div>
+      </div>
+      <button onclick="editMaster('course',${i})" style="background:none;border:none;cursor:pointer;font-size:15px;" title="Edit">✏️</button>
+      <button onclick="deleteMaster('course',${i})" style="background:none;border:none;cursor:pointer;font-size:15px;" title="Delete">🗑️</button>
+    </div>`).join('') : '<p style="color:var(--muted);font-size:13px;padding:8px 0;">No courses yet.</p>';
+
+  // BATCHES
+  const bl = document.getElementById('master-batches-list');
+  bl.innerHTML = masterData.batches.length ? masterData.batches.map((bt,i) => `
+    <div class="master-item">
+      <div class="master-badge" style="background:#1a3260;">🕐</div>
+      <div style="flex:1;">
+        <div style="font-weight:600;font-size:13.5px;">${bt.name}</div>
+        <div style="font-size:11.5px;color:var(--muted);">${bt.time}</div>
+      </div>
+      <button onclick="editMaster('batch',${i})" style="background:none;border:none;cursor:pointer;font-size:15px;">✏️</button>
+      <button onclick="deleteMaster('batch',${i})" style="background:none;border:none;cursor:pointer;font-size:15px;">🗑️</button>
+    </div>`).join('') : '<p style="color:var(--muted);font-size:13px;padding:8px 0;">No batches yet.</p>';
+
+  // STAFF
+  const sl = document.getElementById('master-staff-list');
+  sl.innerHTML = masterData.staff.length ? masterData.staff.map((st,i) => `
+    <div class="master-item">
+      <div class="master-avatar" style="width:34px;height:34px;border-radius:50%;background:#065f46;color:#d1fae5;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">${st.name.slice(0,2).toUpperCase()}</div>
+      <div style="flex:1;">
+        <div style="font-weight:600;font-size:13.5px;">${st.name}</div>
+        <div style="font-size:11.5px;color:var(--muted);">${st.designation||''} · ₹${(st.basicSalary||0).toLocaleString('en-IN')}/mo</div>
+      </div>
+      <button onclick="editMaster('staff',${i})" style="background:none;border:none;cursor:pointer;font-size:15px;">✏️</button>
+      <button onclick="deleteMaster('staff',${i})" style="background:none;border:none;cursor:pointer;font-size:15px;">🗑️</button>
+    </div>`).join('') : '<p style="color:var(--muted);font-size:13px;padding:8px 0;">No staff added yet.</p>';
+}
+
+let masterEditType = '';
+let masterEditIdx = -1;
+
+function openMasterModal(type) {
+  masterEditType = type;
+  masterEditIdx = -1;
+  const labels = { course:'Course', batch:'Batch', staff:'Staff' };
+  const fields = getMasterFields(type, null);
+  showInlineModal('Master Data — Add ' + labels[type], fields, 'saveMasterItem()');
+}
+
+function editMaster(type, i) {
+  masterEditType = type;
+  masterEditIdx = i;
+  const arr = masterData[type + 's'] || masterData.staff;
+  const item = type === 'staff' ? masterData.staff[i] : arr[i];
+  const labels = { course:'Course', batch:'Batch', staff:'Staff' };
+  const fields = getMasterFields(type, item);
+  showInlineModal('Edit ' + labels[type], fields, 'saveMasterItem()');
+}
+
+function getMasterFields(type, item) {
+  if (type === 'course') return `
+    <div class="form-group full"><label>Course Name *</label><input id="mf-name" type="text" value="${item?item.name:''}" placeholder="e.g. Tally with GST"></div>
+    <div class="form-group"><label>Duration (Months)</label><input id="mf-duration" type="number" value="${item?item.duration:3}" placeholder="3"></div>
+    <div class="form-group"><label>Fee (₹)</label><input id="mf-fee" type="number" value="${item?item.fee:0}" placeholder="0"></div>`;
+  if (type === 'batch') return `
+    <div class="form-group full"><label>Batch Name *</label><input id="mf-name" type="text" value="${item?item.name:''}" placeholder="e.g. Morning"></div>
+    <div class="form-group full"><label>Time Slot</label><input id="mf-time" type="text" value="${item?item.time:''}" placeholder="e.g. 8:00 AM - 10:00 AM"></div>`;
+  if (type === 'staff') return `
+    <div class="form-group full"><label>Full Name *</label><input id="mf-name" type="text" value="${item?item.name:''}" placeholder="Staff name"></div>
+    <div class="form-group"><label>Designation</label><input id="mf-designation" type="text" value="${item?item.designation:''}" placeholder="e.g. Teacher"></div>
+    <div class="form-group"><label>Mobile</label><input id="mf-mobile" type="tel" value="${item?item.mobile:''}" placeholder="Mobile"></div>
+    <div class="form-group"><label>Basic Salary (₹/month)</label><input id="mf-salary" type="number" value="${item?item.basicSalary:0}" placeholder="0"></div>
+    <div class="form-group"><label>Join Date</label><input id="mf-joindate" type="date" value="${item?item.joinDate:''}"></div>
+    <div class="form-group"><label>Department</label><input id="mf-dept" type="text" value="${item?item.dept:''}" placeholder="e.g. Faculty"></div>`;
+  return '';
+}
+
+function showInlineModal(title, fieldsHtml, saveCall) {
+  document.getElementById('inline-modal-title').textContent = title;
+  document.getElementById('inline-modal-fields').innerHTML = `<div class="form-grid">${fieldsHtml}</div>`;
+  document.getElementById('inline-modal-save').setAttribute('onclick', saveCall);
+  document.getElementById('inline-modal').classList.add('open');
+}
+
+function saveMasterItem() {
+  const name = document.getElementById('mf-name') ? document.getElementById('mf-name').value.trim() : '';
+  if (!name) { showAlert('master-alert','error','Name is required.'); return; }
+  let item = {};
+  if (masterEditType === 'course') {
+    item = { id: 'c'+Date.now(), name, duration: parseInt(document.getElementById('mf-duration').value)||3, fee: parseFloat(document.getElementById('mf-fee').value)||0 };
+    if (masterEditIdx >= 0) masterData.courses[masterEditIdx] = item;
+    else masterData.courses.push(item);
+  } else if (masterEditType === 'batch') {
+    item = { id: 'b'+Date.now(), name, time: document.getElementById('mf-time').value.trim() };
+    if (masterEditIdx >= 0) masterData.batches[masterEditIdx] = item;
+    else masterData.batches.push(item);
+  } else if (masterEditType === 'staff') {
+    item = { id: 's'+Date.now(), name,
+      designation: document.getElementById('mf-designation').value.trim(),
+      mobile: document.getElementById('mf-mobile').value.trim(),
+      basicSalary: parseFloat(document.getElementById('mf-salary').value)||0,
+      joinDate: document.getElementById('mf-joindate').value,
+      dept: document.getElementById('mf-dept').value.trim()
+    };
+    if (masterEditIdx >= 0) masterData.staff[masterEditIdx] = item;
+    else masterData.staff.push(item);
+  }
+  saveMasterData();
+  closeModal('inline-modal');
+  renderMasterData();
+  showAlert('master-alert','success','✅ Saved successfully.');
+}
+
+function deleteMaster(type, i) {
+  if (!confirm('Delete this item?')) return;
+  if (type === 'course') masterData.courses.splice(i,1);
+  else if (type === 'batch') masterData.batches.splice(i,1);
+  else if (type === 'staff') masterData.staff.splice(i,1);
+  saveMasterData();
+  renderMasterData();
+  showAlert('master-alert','success','Deleted.');
+}
+
+// ============================================================
+// SALARY
+// ============================================================
+let currentSalaryStaff = null;
+
+function initSalaryPage() {
+  const sel = document.getElementById('sal-staff');
+  sel.innerHTML = '<option value="">— Select Staff —</option>';
+  masterData.staff.forEach((st,i) => {
+    const o = document.createElement('option');
+    o.value = i; o.textContent = st.name + (st.designation?' ('+st.designation+')':'');
+    sel.appendChild(o);
+  });
+  const today = new Date();
+  document.getElementById('sal-month').value = today.toISOString().slice(0,7);
+  document.getElementById('salary-form-wrap').style.display = 'none';
+  document.getElementById('salary-history-card').style.display = 'none';
+}
+
+function loadStaffSalary() {
+  const idx = document.getElementById('sal-staff').value;
+  if (idx === '') { document.getElementById('salary-form-wrap').style.display='none'; return; }
+  currentSalaryStaff = masterData.staff[parseInt(idx)];
+  document.getElementById('salary-form-wrap').style.display = '';
+  // defaults
+  document.getElementById('sal-working-days').value = 26;
+  document.getElementById('sal-present-days').value = 26;
+  document.getElementById('sal-leave-days').value = 0;
+  document.getElementById('sal-ot-hours').value = 0;
+  document.getElementById('sal-ot-days').value = 0;
+  document.getElementById('sal-ot-rate').value = 0;
+  document.getElementById('sal-advance').value = 0;
+  document.getElementById('sal-deductions').value = 0;
+  document.getElementById('sal-bonus').value = 0;
+  document.getElementById('sal-remarks').value = '';
+  calcSalary();
+}
+
+function calcSalary() {
+  if (!currentSalaryStaff) return;
+  const basic = parseFloat(currentSalaryStaff.basicSalary)||0;
+  const workDays = parseFloat(document.getElementById('sal-working-days').value)||26;
+  const presentDays = parseFloat(document.getElementById('sal-present-days').value)||0;
+  const leaveDays = parseFloat(document.getElementById('sal-leave-days').value)||0;
+  const otHours = parseFloat(document.getElementById('sal-ot-hours').value)||0;
+  const otDays = parseFloat(document.getElementById('sal-ot-days').value)||0;
+  const otRate = parseFloat(document.getElementById('sal-ot-rate').value)||0;
+  const advance = parseFloat(document.getElementById('sal-advance').value)||0;
+  const deductions = parseFloat(document.getElementById('sal-deductions').value)||0;
+  const bonus = parseFloat(document.getElementById('sal-bonus').value)||0;
+
+  const perDay = workDays > 0 ? basic / workDays : 0;
+  const effectiveDays = Math.max(0, presentDays - leaveDays);
+  const earnedSalary = perDay * effectiveDays;
+  const lopDeduction = perDay * leaveDays;
+  const otFromHours = otHours * otRate;
+  const otFromDays = otDays * perDay;
+  const totalOT = otFromHours + otFromDays;
+  const grossPay = earnedSalary + totalOT + bonus;
+  const netPay = Math.max(0, grossPay - advance - deductions);
+
+  // Update ot amount field
+  document.getElementById('sal-ot-amount').value = totalOT.toFixed(2);
+
+  // Update display cards
+  document.getElementById('sal-basic-display').textContent = '₹'+basic.toLocaleString('en-IN');
+  document.getElementById('sal-per-day-display').textContent = '₹'+perDay.toFixed(0)+'/day · '+effectiveDays+' days worked';
+  document.getElementById('sal-advance-display').textContent = '₹'+advance.toLocaleString('en-IN');
+  document.getElementById('sal-net-display').textContent = '₹'+netPay.toLocaleString('en-IN');
+  document.getElementById('sal-net-big').textContent = '₹'+netPay.toLocaleString('en-IN');
+
+  // Breakdown
+  const rows = [
+    ['Basic Salary', '₹'+basic.toLocaleString('en-IN'),''],
+    ['Per Day Rate', '₹'+perDay.toFixed(2),''],
+    ['Days Worked', effectiveDays+' days',''],
+    ['Earned Salary', '₹'+earnedSalary.toFixed(2),'green'],
+    ['LOP Deduction ('+leaveDays+' days)', '- ₹'+lopDeduction.toFixed(2),'red'],
+    ['Overtime ('+otHours+'hrs + '+otDays+'days)', '+ ₹'+totalOT.toFixed(2),'green'],
+    ['Bonus / Allowance', '+ ₹'+bonus.toFixed(2),'green'],
+    ['Gross Pay', '₹'+grossPay.toFixed(2),''],
+    ['Advance Paid', '- ₹'+advance.toFixed(2),'red'],
+    ['Other Deductions', '- ₹'+deductions.toFixed(2),'red'],
+  ];
+  document.getElementById('salary-breakdown').innerHTML = rows.map(([label,val,col])=>`
+    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9;font-size:13.5px;">
+      <span style="color:var(--muted);">${label}</span>
+      <span style="font-weight:600;color:${col==='green'?'var(--green)':col==='red'?'var(--red)':'var(--text)'}">${val}</span>
+    </div>`).join('');
+}
+
+function saveSalary() {
+  if (!currentSalaryStaff) { showAlert('salary-alert','error','Select a staff member first.'); return; }
+  const month = document.getElementById('sal-month').value;
+  if (!month) { showAlert('salary-alert','error','Select a month.'); return; }
+  const basic = parseFloat(currentSalaryStaff.basicSalary)||0;
+  const workDays = parseFloat(document.getElementById('sal-working-days').value)||26;
+  const presentDays = parseFloat(document.getElementById('sal-present-days').value)||0;
+  const leaveDays = parseFloat(document.getElementById('sal-leave-days').value)||0;
+  const otHours = parseFloat(document.getElementById('sal-ot-hours').value)||0;
+  const otDays = parseFloat(document.getElementById('sal-ot-days').value)||0;
+  const otRate = parseFloat(document.getElementById('sal-ot-rate').value)||0;
+  const advance = parseFloat(document.getElementById('sal-advance').value)||0;
+  const deductions = parseFloat(document.getElementById('sal-deductions').value)||0;
+  const bonus = parseFloat(document.getElementById('sal-bonus').value)||0;
+  const otAmount = parseFloat(document.getElementById('sal-ot-amount').value)||0;
+  const perDay = workDays > 0 ? basic/workDays : 0;
+  const effectiveDays = Math.max(0, presentDays - leaveDays);
+  const earnedSalary = perDay * effectiveDays;
+  const grossPay = earnedSalary + otAmount + bonus;
+  const netPay = Math.max(0, grossPay - advance - deductions);
+  const record = {
+    id: Date.now(), staffId: currentSalaryStaff.id, staffName: currentSalaryStaff.name,
+    month, basic, workDays, presentDays, leaveDays, otHours, otDays, otRate, otAmount,
+    advance, deductions, bonus, earnedSalary, grossPay, netPay,
+    remarks: document.getElementById('sal-remarks').value,
+    savedAt: new Date().toISOString(), savedBy: currentUser.username
+  };
+  salaries.push(record);
+  DB.set('salaries', salaries);
+  showAlert('salary-alert','success','✅ Salary record saved for '+currentSalaryStaff.name+' ('+month+'). Net Pay: ₹'+netPay.toLocaleString('en-IN'));
+  callSheets({ action:'addSalary', ...record });
+}
+
+function viewSalaryHistory() {
+  const card = document.getElementById('salary-history-card');
+  card.style.display = '';
+  const tbody = document.getElementById('salary-history-body');
+  if (!salaries.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;">No salary records yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = [...salaries].reverse().map(s=>`
+    <tr>
+      <td>${s.month}</td>
+      <td><strong>${s.staffName}</strong></td>
+      <td>₹${(s.basic||0).toLocaleString('en-IN')}</td>
+      <td>${s.presentDays}/${s.workDays}</td>
+      <td>₹${(s.otAmount||0).toFixed(0)}</td>
+      <td style="color:var(--red);">₹${(s.advance||0).toLocaleString('en-IN')}</td>
+      <td style="color:var(--green);font-weight:700;">₹${(s.netPay||0).toLocaleString('en-IN')}</td>
+      <td><button class="btn btn-outline" onclick="printSalarySlip(${s.id})" style="padding:4px 10px;font-size:12px;">🖨️ Slip</button></td>
+    </tr>`).join('');
+}
+
+function printSalarySlip(id) {
+  const s = salaries.find(x=>x.id===id);
+  if (!s) return;
+  const w = window.open('','_blank','width=600,height=700');
+  w.document.write(`<!DOCTYPE html><html><head><title>Salary Slip</title>
+  <style>body{font-family:sans-serif;padding:30px;font-size:13px;}h2{color:#0f1f3d;}table{width:100%;border-collapse:collapse;margin-top:16px;}td{padding:8px 12px;border-bottom:1px solid #eee;}td:last-child{text-align:right;font-weight:600;}.net{background:#0f1f3d;color:#96fbc4;font-size:16px;font-weight:700;}</style></head><body>
+  <h2>${cfg.instName||'EduTrack Institute'}</h2>
+  <p>Salary Slip — <strong>${s.month}</strong> &nbsp;|&nbsp; Staff: <strong>${s.staffName}</strong></p>
+  <table>
+    <tr><td>Basic Salary</td><td>₹${(s.basic||0).toLocaleString('en-IN')}</td></tr>
+    <tr><td>Working Days</td><td>${s.workDays}</td></tr>
+    <tr><td>Present Days</td><td>${s.presentDays}</td></tr>
+    <tr><td>Leave (LOP) Days</td><td>${s.leaveDays||0}</td></tr>
+    <tr><td>Earned Salary</td><td>₹${(s.earnedSalary||0).toFixed(2)}</td></tr>
+    <tr><td>Overtime (${s.otHours||0}hrs + ${s.otDays||0}days)</td><td>₹${(s.otAmount||0).toFixed(2)}</td></tr>
+    <tr><td>Bonus / Allowance</td><td>₹${(s.bonus||0).toFixed(2)}</td></tr>
+    <tr><td>Gross Pay</td><td>₹${(s.grossPay||0).toFixed(2)}</td></tr>
+    <tr><td>Advance Deducted</td><td style="color:red;">- ₹${(s.advance||0).toFixed(2)}</td></tr>
+    <tr><td>Other Deductions</td><td style="color:red;">- ₹${(s.deductions||0).toFixed(2)}</td></tr>
+    <tr class="net"><td colspan="2" style="color:#96fbc4;background:#0f1f3d;padding:12px;">NET PAY &nbsp;|&nbsp; ₹${(s.netPay||0).toLocaleString('en-IN')}</td></tr>
+  </table>
+  ${s.remarks?'<p style="margin-top:12px;color:#64748b;">Remarks: '+s.remarks+'</p>':''}
+  <p style="margin-top:24px;font-size:11px;color:#94a3b8;">Generated by EduTrack on ${new Date().toLocaleDateString('en-IN')}</p>
+  <script>window.onload=()=>window.print();<\/script></body></html>`);
+  w.document.close();
+}
+
+// ============================================================
+// MARKS ENTRY
+// ============================================================
+function loadMarksStudents() {
+  const batch = document.getElementById('mk-batch').value;
+  const course = document.getElementById('mk-course').value;
+  if (!batch || !course) return;
+  const filtered = students.filter(s=>s.batch===batch && s.course===course && (s.status||'Active')==='Active');
+  const listCard = document.getElementById('marks-list-card');
+  const emptyEl = document.getElementById('marks-empty');
+  if (!filtered.length) { listCard.style.display='none'; emptyEl.style.display='block'; return; }
+  listCard.style.display=''; emptyEl.style.display='none';
+  document.getElementById('marks-rows').innerHTML = filtered.map(s=>`
+    <div class="marks-student-row" data-roll="${s.rollNo}" data-name="${s.fname} ${s.lname}">
+      <div style="font-size:12px;font-weight:600;color:var(--muted);">${s.rollNo}</div>
+      <div style="font-weight:500;">${s.fname} ${s.lname}</div>
+      <input type="number" id="mkmax-${s.rollNo}" placeholder="100" min="0" value="100" oninput="autoGradeRow('${s.rollNo}')">
+      <input type="number" id="mkobt-${s.rollNo}" placeholder="0" min="0" oninput="autoGradeRow('${s.rollNo}')">
+      <select id="mkgrade-${s.rollNo}">
+        <option value="">Grade</option>
+        <option value="O">O (Outstanding)</option>
+        <option value="A+">A+ (Excellent)</option>
+        <option value="A">A (Very Good)</option>
+        <option value="B+">B+ (Good)</option>
+        <option value="B">B (Average)</option>
+        <option value="C">C (Pass)</option>
+        <option value="F">F (Fail)</option>
+      </select>
+    </div>`).join('');
+}
+
+function autoGradeRow(rollNo) {
+  const max = parseFloat(document.getElementById('mkmax-'+rollNo).value)||0;
+  const obt = parseFloat(document.getElementById('mkobt-'+rollNo).value)||0;
+  if (!max) return;
+  const pct = (obt/max)*100;
+  let grade = 'F';
+  if (pct>=90) grade='O'; else if (pct>=80) grade='A+'; else if (pct>=70) grade='A';
+  else if (pct>=60) grade='B+'; else if (pct>=50) grade='B'; else if (pct>=40) grade='C';
+  document.getElementById('mkgrade-'+rollNo).value = grade;
+}
+
+function autoGrade() {
+  document.querySelectorAll('[data-roll]').forEach(row => {
+    autoGradeRow(row.dataset.roll);
+  });
+}
+
+function submitMarks() {
+  const batch = document.getElementById('mk-batch').value;
+  const course = document.getElementById('mk-course').value;
+  const subject = document.getElementById('mk-subject').value.trim();
+  if (!subject) { showAlert('marks-alert','error','❌ Enter the subject / exam name.'); return; }
+  const rows = document.querySelectorAll('#marks-rows [data-roll]');
+  if (!rows.length) return;
+  const newMarks = [];
+  rows.forEach(row => {
+    const roll = row.dataset.roll;
+    const name = row.dataset.name;
+    const maxM = parseFloat(document.getElementById('mkmax-'+roll).value)||0;
+    const obtM = parseFloat(document.getElementById('mkobt-'+roll).value)||0;
+    const grade = document.getElementById('mkgrade-'+roll).value;
+    newMarks.push({ id: Date.now()+Math.random(), rollNo:roll, studentName:name,
+      course, batch, subject, maxMarks:maxM, obtainedMarks:obtM, grade,
+      enteredBy: currentUser.name, enteredAt: new Date().toISOString() });
+  });
+  marks = [...marks, ...newMarks];
+  DB.set('marks', marks);
+  callSheets({ action:'addMarks', records: newMarks });
+  showAlert('marks-alert','success','✅ Marks saved for '+newMarks.length+' students — Subject: '+subject);
+  document.getElementById('mk-batch').selectedIndex=0;
+  document.getElementById('mk-course').selectedIndex=0;
+  document.getElementById('mk-subject').value='';
+  document.getElementById('marks-list-card').style.display='none';
+  document.getElementById('marks-empty').style.display='none';
+}
+
+// ============================================================
+// TABS / MODALS / ALERTS
+// ============================================================
+function switchTab(page, tab, el) {
+  el.closest('.tabs').querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  if (page==='fees') {
+    document.getElementById('fees-tab-collect').style.display=tab==='collect'?'block':'none';
+    document.getElementById('fees-tab-history').style.display=tab==='history'?'block':'none';
+    if (tab==='history') renderPaymentsTable();
+  }
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function showAlert(id, type, msg) {
+  const el=document.getElementById(id);
+  if (!el) return;
+  el.innerHTML=`<div class="alert alert-${type}">${msg}</div>`;
+  el.style.display='block';
+  if (type==='success') setTimeout(()=>{el.innerHTML='';el.style.display='none';},5000);
+}
+</script>
+</body>
+</html>
